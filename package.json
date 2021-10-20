@@ -4,8 +4,10 @@
   "description": "Repo for ERC721 distribution mechanism",
   "main": "hardhat.config.js",
   "scripts": {
-    "contracts:migrate:dev": "npx hardhat deploy-nomoPlayersDropMechanic --network rinkeby",
-    "contracts:verify:dev": "npx hardhat verify-nomoPlayersDropMechanic --network rinkeby"
+    "contracts:migrate:dev": "npx hardhat deploy-nomoPlayersDropMechanic --network mumbai",
+    "contracts:verify:dev": "npx hardhat verify-nomoPlayersDropMechanic --network mumbai",
+    "contracts:migrate:prod": "npx hardhat deploy-nomoPlayersDropMechanic --network mainnet",
+    "contracts:verify:prod": "npx hardhat verify-nomoPlayersDropMechanic --network mainnet"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
