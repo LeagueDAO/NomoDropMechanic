@@ -27,7 +27,8 @@ library RandomGenerator {
                                 block.timestamp,
                                 block.difficulty,
                                 block.number,
-                                blockhash(block.number)
+                                blockhash(block.number),
+                                address(this)
                             )
                         )
                     )
