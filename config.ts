@@ -11,22 +11,22 @@ export const networks: NetworksUserConfig = {
     },
     hardhat: {
     },
-    // Rinkeby
-    rinkeby: {
-        url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
-        chainId: 4,
+    // Mumbai Testnet
+    mumbai: {
+        url: "https://rpc-mumbai.maticvigil.com",
+        chainId: 80001,
         accounts: [`0x${process.env.PRIVATE_KEY}`],
         gas: 'auto',
-        gasPrice: 1000000000, // 1 gwei
+        gasPrice: 'auto',
         gasMultiplier: 1.5,
     },
-    // Mainnet
+    // Matic Mainnet
     mainnet: {
-        url: 'https://mainnet.infura.io/v3/YOUR-INFURA-KEY',
-        chainId: 1,
-        accounts: ['0xaaaa'],
+        url: "https://rpc-mainnet.matic.network",
+        chainId: 137,
+        accounts: [`0x${process.env.PRIVATE_KEY}`],
         gas: 'auto',
-        gasPrice: 50000000000,
+        gasPrice: 'auto',
         gasMultiplier: 1.5,
     },
 };
@@ -34,5 +34,5 @@ export const networks: NetworksUserConfig = {
 // Use to verify contracts on Etherscan
 // https://buidler.dev/plugins/nomiclabs-buidler-etherscan.html
 export const etherscan: EtherscanConfig = {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: process.env.API_KEY,
 };

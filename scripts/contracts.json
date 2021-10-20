@@ -1,6 +1,6 @@
 {
-  "network": "rinkeby",
-  "nomoPlayersDropMechanic": "0x824807A46156Ce28F2C0CfeB0271179b32903adB",
+  "network": "mumbai",
+  "nomoPlayersDropMechanic": "0x82A59E0E68eb9F4C60f1c433d177Eb43eC8fdaEd",
   "mintedTokens": [
     1,
     2,
