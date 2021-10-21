@@ -187,6 +187,23 @@ describe("NomoPlayersDropMechanic tests", function () {
       deployerAddress) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Maximum quantity must be higher than zero');
   });
 
+  it("must fail to deploy NomoPlayersDropMechanic contract if DAI address is not valid", async () => {
+    const { addressStrategyMockTest, addressERC721MockTest, addressDAIMockTest } = await deployMockContracts();
+
+    const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
+    const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+
+    await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
+      mintedTokensTest,
+      tokenPrice,
+      maxQuantity,
+      zeroAddress,
+      addressERC721MockTest,
+      daoWalletAddress,
+      addressStrategyMockTest,
+      deployerAddress) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Not valid address');
+  });
+
   it("must fail to deploy NomoPlayersDropMechanic contract if ERC721 address is not valid", async () => {
     const { addressStrategyMockTest, addressDAIMockTest } = await deployMockContracts();
 
@@ -308,7 +325,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     // Approve nomoPlayersDropMechanicTestContract to spend user's tokens
     await daiMockTest.connect(user).approve(nomoPlayersDropMechanicTestAddress, value);
-    
+
     await expect(nomoPlayersDropMechanicTestContract.connect(user).buyTokens(tokensToBeBought))
       .to.be.revertedWith("ERC20: transfer amount exceeds balance");
 
