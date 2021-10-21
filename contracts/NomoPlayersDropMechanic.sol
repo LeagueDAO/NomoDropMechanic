@@ -10,7 +10,7 @@ import "./RandomGenerator.sol";
 
 /**
  * @title Contract for distributing ERC721 tokens.
- * The purpose is to give the ability for users to buy with DAI, randomly chosen tokens from the collection.
+ * The purpose is to give the ability for users to buy with ERC20, randomly chosen tokens from the collection.
  */
 contract NomoPlayersDropMechanic is ReentrancyGuard {
     using SafeMath for uint256;
@@ -22,7 +22,7 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
     address public tokensVault;
     address payable public daoWalletAddr;
     address payable public strategyContractAddr;
-    address public daiAddress;
+    address public erc20Address;
     address public erc721Address;
 
     RandomGenerator.Random internal randomGenerator;
@@ -34,7 +34,7 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
      * @param  tokensArray array of all tokenIds minted in ERC721 contract instance
      * @param _tokenPrice to be used for the price
      * @param _maxQuantity to be used for the maximum quantity
-     * @param _daiAddress address of the associated ERC20 contract instance
+     * @param _erc20Address address of the associated ERC20 contract instance
      * @param _erc721Address address of the associated ERC721 contract instance
      * @param _daoWalletAddr address of the DAO wallet
      * @param _strategyContractAddr address of the associated Strategy contract instance
@@ -44,7 +44,7 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
         uint256[] memory tokensArray,
         uint256 _tokenPrice,
         uint256 _maxQuantity,
-        address _daiAddress,
+        address _erc20Address,
         address _erc721Address,
         address payable _daoWalletAddr,
         address payable _strategyContractAddr,
@@ -60,13 +60,13 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
             (_erc721Address != address(0)) &&
                 (_daoWalletAddr != address(0)) &&
                 (_strategyContractAddr != address(0)) &&
-                (_daiAddress != address(0)),
+                (_erc20Address != address(0)),
             "Not valid address"
         );
         tokens = tokensArray;
         tokenPrice = _tokenPrice;
         maxQuantity = _maxQuantity;
-        daiAddress = _daiAddress;
+        erc20Address = _erc20Address;
         erc721Address = _erc721Address;
         daoWalletAddr = _daoWalletAddr;
         strategyContractAddr = _strategyContractAddr;
@@ -79,12 +79,12 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
      * @dev Buyer sends particular message value and requests quantity.
      * NomoPlayersDropMechanic distributes the tokens to the buyer's address if the requirements are met.
      * NomoPlayersDropMechanic is approved to have disposal of the collection minted on the tokensVault's address.
-     * NomoPlayersDropMechanic transfers 20% of the DAI tokens to DAO wallet address and 80% to Strategy contract.
+     * NomoPlayersDropMechanic transfers 20% of the ERC20 tokens to DAO wallet address and 80% to Strategy contract.
      *
      * @param quantity quantity of tokens which user requests to buy
      *
      * Requirements:
-     * - the caller must have sufficient DAI tokens.
+     * - the caller must have sufficient ERC20 tokens.
      */
     function buyTokens(uint256 quantity) external payable nonReentrant {
         require(
@@ -112,13 +112,13 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
             );
         }
 
-        IERC20(daiAddress).transferFrom(
+        IERC20(erc20Address).transferFrom(
             msg.sender,
             daoWalletAddr,
             valueDivision
         );
 
-        IERC20(daiAddress).transferFrom(
+        IERC20(erc20Address).transferFrom(
             msg.sender,
             strategyContractAddr,
             valueDivision.mul(4)

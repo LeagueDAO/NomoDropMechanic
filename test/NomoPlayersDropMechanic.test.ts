@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 import hre, { ethers } from "hardhat";
-import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, DAIMock } from '../typechain';
+import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock } from '../typechain';
 import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
 import { tokenPrice, collectibleItems, maxQuantity, zeroAddress } from './helpers/constants';
 import { getTokensFromEventArgs } from './helpers/helpers';
@@ -22,7 +22,7 @@ async function setupSigners() {
 describe("NomoPlayersDropMechanic tests", function () {
   let erc721Mock: ERC721Mock;
   let strategyMock: StrategyMock;
-  let daiMock: DAIMock;
+  let erc20Mock: ERC20Mock;
   let nomoPlayersDropMechanicContract: NomoPlayersDropMechanic;
   let nomoPlayersDropMechanicAddress: string;
 
@@ -37,12 +37,12 @@ describe("NomoPlayersDropMechanic tests", function () {
     await strategyMockTest.deployed();
     const addressStrategyMockTest = strategyMockTest.address;
 
-    const DAI_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("DAIMock");
-    const daiMockTest = await DAI_Factory_Test.connect(user).deploy(mintQty) as DAIMock;
-    await daiMockTest.deployed();
-    const addressDAIMockTest = daiMockTest.address;
+    const ERC20_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("ERC20Mock");
+    const erc20MockTest = await ERC20_Factory_Test.connect(user).deploy(mintQty) as ERC20Mock;
+    await erc20MockTest.deployed();
+    const addressERC20MockTest = erc20MockTest.address;
 
-    return { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, daiMockTest, addressDAIMockTest };
+    return { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, erc20MockTest, addressERC20MockTest };
   }
 
   before(async function () {
@@ -60,11 +60,11 @@ describe("NomoPlayersDropMechanic tests", function () {
     await strategyMock.deployed();
     const addressStrategyMock = strategyMock.address;
 
-    const DAI_Factory: ContractFactory = await hre.ethers.getContractFactory("DAIMock");
+    const ERC20_Factory: ContractFactory = await hre.ethers.getContractFactory("ERC20Mock");
     const mintQty = 1000;
-    daiMock = await DAI_Factory.connect(user).deploy(mintQty) as DAIMock;
-    await daiMock.deployed();
-    const addressDAIMock = daiMock.address;
+    erc20Mock = await ERC20_Factory.connect(user).deploy(mintQty) as ERC20Mock;
+    await erc20Mock.deployed();
+    const addressERC20Mock = erc20Mock.address;
 
     const mintCollectionTx = await erc721Mock.connect(deployer).mintCollection(collectibleItems);
     const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
@@ -74,14 +74,14 @@ describe("NomoPlayersDropMechanic tests", function () {
     expect(mintedTokens.length).not.to.equal(0);
     expect(addressERC721Mock).not.to.equal(zeroAddress);
     expect(addressStrategyMock).not.to.equal(zeroAddress);
-    expect(addressDAIMock).not.to.equal(zeroAddress);
+    expect(addressERC20Mock).not.to.equal(zeroAddress);
 
     const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
       mintedTokens,
       tokenPrice,
       maxQuantity,
-      addressDAIMock,
+      addressERC20Mock,
       addressERC721Mock,
       daoWalletAddress,
       addressStrategyMock,
@@ -98,23 +98,23 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   it("should buy tokens from NomoPlayersDropMechanic contract", async function () {
-    const userFundsBefore = await daiMock.balanceOf(userAddress);
-    const daoWalletFundsBefore = await daiMock.balanceOf(daoWalletAddress);
-    const strategyFundsBefore = await daiMock.balanceOf(strategyMock.address);
+    const userFundsBefore = await erc20Mock.balanceOf(userAddress);
+    const daoWalletFundsBefore = await erc20Mock.balanceOf(daoWalletAddress);
+    const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
     const userTokensBefore = await erc721Mock.balanceOf(userAddress);
     const deployerFundsBefore = await erc721Mock.balanceOf(deployerAddress);
 
     const tokensToBeBought = 10;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
-    await daiMock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+    await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
     const buyTokensTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought);
     await buyTokensTx.wait();
 
     const userTokensAfter = await erc721Mock.balanceOf(userAddress);
     const deployerFundsAfter = await erc721Mock.balanceOf(deployerAddress);
-    const userFundsAfter = await daiMock.balanceOf(userAddress);
-    const daoWalletFundsAfter = await daiMock.balanceOf(daoWalletAddress);
-    const strategyFundsAfter = await daiMock.balanceOf(strategyMock.address);
+    const userFundsAfter = await erc20Mock.balanceOf(userAddress);
+    const daoWalletFundsAfter = await erc20Mock.balanceOf(daoWalletAddress);
+    const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
     const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
 
     expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
@@ -131,12 +131,12 @@ describe("NomoPlayersDropMechanic tests", function () {
   it("should emit LogTokensBought event", async function () {
     const tokensToBeBought = 1;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
-    await daiMock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+    await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
     await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought)).to.emit(nomoPlayersDropMechanicContract, "LogTokensBought");
   });
 
   it("must fail to deploy NomoPlayersDropMechanic contract if tokens array is empty", async () => {
-    const { addressERC721MockTest, addressStrategyMockTest, addressDAIMockTest } = await deployMockContracts();
+    const { addressERC721MockTest, addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
 
@@ -144,7 +144,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       [],
       tokenPrice,
       maxQuantity,
-      addressDAIMockTest,
+      addressERC20MockTest,
       addressERC721MockTest,
       daoWalletAddress,
       addressStrategyMockTest,
@@ -152,7 +152,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   it("must fail to deploy NomoPlayersDropMechanic contract if token price is zero", async () => {
-    const { addressERC721MockTest, addressStrategyMockTest, addressDAIMockTest } = await deployMockContracts();
+    const { addressERC721MockTest, addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
@@ -162,7 +162,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       mintedTokensTest,
       fakeTokenPrice,
       maxQuantity,
-      addressDAIMockTest,
+      addressERC20MockTest,
       addressERC721MockTest,
       daoWalletAddress,
       addressStrategyMockTest,
@@ -170,7 +170,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   it("must fail to deploy NomoPlayersDropMechanic contract if maximum quantity is zero", async () => {
-    const { addressERC721MockTest, addressStrategyMockTest, addressDAIMockTest } = await deployMockContracts();
+    const { addressERC721MockTest, addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
@@ -180,15 +180,15 @@ describe("NomoPlayersDropMechanic tests", function () {
       mintedTokensTest,
       tokenPrice,
       fakeMaxQuantity,
-      addressDAIMockTest,
+      addressERC20MockTest,
       addressERC721MockTest,
       daoWalletAddress,
       addressStrategyMockTest,
       deployerAddress) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Maximum quantity must be higher than zero');
   });
 
-  it("must fail to deploy NomoPlayersDropMechanic contract if DAI address is not valid", async () => {
-    const { addressStrategyMockTest, addressERC721MockTest, addressDAIMockTest } = await deployMockContracts();
+  it("must fail to deploy NomoPlayersDropMechanic contract if ERC20 address is not valid", async () => {
+    const { addressStrategyMockTest, addressERC721MockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
@@ -205,7 +205,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   it("must fail to deploy NomoPlayersDropMechanic contract if ERC721 address is not valid", async () => {
-    const { addressStrategyMockTest, addressDAIMockTest } = await deployMockContracts();
+    const { addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
@@ -214,7 +214,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       mintedTokensTest,
       tokenPrice,
       maxQuantity,
-      addressDAIMockTest,
+      addressERC20MockTest,
       zeroAddress,
       daoWalletAddress,
       addressStrategyMockTest,
@@ -222,7 +222,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   it("must fail to deploy NomoPlayersDropMechanic contract if Dao address is not valid", async () => {
-    const { addressERC721MockTest, addressDAIMockTest } = await deployMockContracts();
+    const { addressERC721MockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
@@ -231,7 +231,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       mintedTokensTest,
       tokenPrice,
       maxQuantity,
-      addressDAIMockTest,
+      addressERC20MockTest,
       addressERC721MockTest,
       daoWalletAddress,
       zeroAddress,
@@ -239,7 +239,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   it("must fail to deploy NomoPlayersDropMechanic contract if Strategy contract address is not valid", async () => {
-    const { addressERC721MockTest, addressStrategyMockTest, addressDAIMockTest } = await deployMockContracts();
+    const { addressERC721MockTest, addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
@@ -248,7 +248,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       mintedTokensTest,
       tokenPrice,
       maxQuantity,
-      addressDAIMockTest,
+      addressERC20MockTest,
       addressERC721MockTest,
       zeroAddress,
       addressStrategyMockTest,
@@ -264,12 +264,12 @@ describe("NomoPlayersDropMechanic tests", function () {
   it("must fail if quantity is higher than the items in the collection", async function () {
     const tokensToBeBought1 = 20;
     const value1 = BigNumber.from(tokensToBeBought1).mul(tokenPrice);
-    await daiMock.connect(user).approve(nomoPlayersDropMechanicAddress, value1);
+    await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value1);
     await nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought1);
 
     const tokensToBeBought2 = 6;
     const value2 = BigNumber.from(tokensToBeBought1).mul(tokenPrice);
-    await daiMock.connect(user).approve(nomoPlayersDropMechanicAddress, value2);
+    await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value2);
     await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought2))
       .to.be.revertedWith("Insufficient available quantity");
   });
@@ -277,7 +277,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   it("must fail if requested quantity exceeds the limit", async function () {
     const tokensToBeBought = 21;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
-    await daiMock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+    await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
     await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought))
       .to.be.revertedWith("Invalid quantity");
   });
@@ -286,18 +286,18 @@ describe("NomoPlayersDropMechanic tests", function () {
     await erc721Mock.setApprovalForAll(nomoPlayersDropMechanicAddress, false, { from: deployerAddress });
     const tokensToBeBought = 10;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
-    await daiMock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+    await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
     await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought))
       .to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
   });
 
-  it("must fail if user doesn't have enough DAI", async function () {
-    // Deploy ERC721Mock, StrategyMock and DAIMock, and mint `n` tokens on `user` address who is also deployer of the DAIMock contract
-    const { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, daiMockTest, addressDAIMockTest } = await deployMockContracts(9);
+  it("must fail if user doesn't have enough ERC20", async function () {
+    // Deploy ERC721Mock, StrategyMock and ERC20Mock, and mint `n` tokens on `user` address who is also deployer of the ERC20Mock contract
+    const { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, erc20MockTest, addressERC20MockTest } = await deployMockContracts(9);
 
-    const userFundsBefore = await daiMockTest.balanceOf(userAddress);
-    const daoWalletFundsBefore = await daiMockTest.balanceOf(daoWalletAddress);
-    const strategyFundsBefore = await daiMockTest.balanceOf(strategyMock.address);
+    const userFundsBefore = await erc20MockTest.balanceOf(userAddress);
+    const daoWalletFundsBefore = await erc20MockTest.balanceOf(daoWalletAddress);
+    const strategyFundsBefore = await erc20MockTest.balanceOf(strategyMock.address);
     const userTokensBefore = await erc721MockTest.balanceOf(userAddress);
 
     const tokensToBeBought = 10;
@@ -312,7 +312,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       mintedTokens,
       tokenPrice,
       maxQuantity,
-      addressDAIMockTest,
+      addressERC20MockTest,
       addressERC721MockTest,
       daoWalletAddress,
       addressStrategyMockTest,
@@ -324,15 +324,15 @@ describe("NomoPlayersDropMechanic tests", function () {
     await erc721MockTest.setApprovalForAll(nomoPlayersDropMechanicTestAddress, true, { from: deployerAddress });
 
     // Approve nomoPlayersDropMechanicTestContract to spend user's tokens
-    await daiMockTest.connect(user).approve(nomoPlayersDropMechanicTestAddress, value);
+    await erc20MockTest.connect(user).approve(nomoPlayersDropMechanicTestAddress, value);
 
     await expect(nomoPlayersDropMechanicTestContract.connect(user).buyTokens(tokensToBeBought))
       .to.be.revertedWith("ERC20: transfer amount exceeds balance");
 
     const userTokensAfter = await erc721MockTest.balanceOf(userAddress);
-    const userFundsAfter = await daiMockTest.balanceOf(userAddress);
-    const daoWalletFundsAfter = await daiMockTest.balanceOf(daoWalletAddress);
-    const strategyFundsAfter = await daiMockTest.balanceOf(strategyMock.address);
+    const userFundsAfter = await erc20MockTest.balanceOf(userAddress);
+    const daoWalletFundsAfter = await erc20MockTest.balanceOf(daoWalletAddress);
+    const strategyFundsAfter = await erc20MockTest.balanceOf(strategyMock.address);
     const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
 
     // The state of the balances must not have changed after, because of the reverted transacted
