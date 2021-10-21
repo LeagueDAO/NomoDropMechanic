@@ -104,7 +104,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     const userTokensBefore = await erc721Mock.balanceOf(userAddress);
     const deployerFundsBefore = await erc721Mock.balanceOf(deployerAddress);
 
-    const tokensToBeBought = 10;
+    const tokensToBeBought = 7;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
     await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
     const buyTokensTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought);
