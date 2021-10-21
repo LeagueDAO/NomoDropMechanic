@@ -84,7 +84,7 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
      * @param quantity quantity of tokens which user requests to buy
      *
      * Requirements:
-     * - the caller must own enough DAI tokens.
+     * - the caller must have sufficient DAI tokens.
      */
     function buyTokens(uint256 quantity) external payable nonReentrant {
         require(

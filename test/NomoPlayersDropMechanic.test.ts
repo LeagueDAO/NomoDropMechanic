@@ -292,7 +292,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   it("must fail if user doesn't have enough DAI", async function () {
-    // Deploy ERC721Mock, StrategyMock and DAIMock, and mint `n` tokens on `user` address  who is also deployer of the DAIMock contract
+    // Deploy ERC721Mock, StrategyMock and DAIMock, and mint `n` tokens on `user` address who is also deployer of the DAIMock contract
     const { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, daiMockTest, addressDAIMockTest } = await deployMockContracts(9);
 
     const userFundsBefore = await daiMockTest.balanceOf(userAddress);
