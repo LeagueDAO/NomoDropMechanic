@@ -102,7 +102,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     const daoWalletFundsBefore = await erc20Mock.balanceOf(daoWalletAddress);
     const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
     const userTokensBefore = await erc721Mock.balanceOf(userAddress);
-    const deployerFundsBefore = await erc721Mock.balanceOf(deployerAddress);
+    const tokenVaultQtyBefore = await erc721Mock.balanceOf(deployerAddress);
 
     const tokensToBeBought = 7;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
@@ -111,7 +111,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     await buyTokensTx.wait();
 
     const userTokensAfter = await erc721Mock.balanceOf(userAddress);
-    const deployerFundsAfter = await erc721Mock.balanceOf(deployerAddress);
+    const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
     const userFundsAfter = await erc20Mock.balanceOf(userAddress);
     const daoWalletFundsAfter = await erc20Mock.balanceOf(daoWalletAddress);
     const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
@@ -122,8 +122,8 @@ describe("NomoPlayersDropMechanic tests", function () {
     expect(strategyFundsBefore).to.equal(0);
     expect(daoWalletFundsAfter).to.equal(daoWalletFundsBefore.add(value.div(5).mul(1)));
     expect(strategyFundsAfter).to.equal(value.div(5).mul(4));
-    expect(deployerFundsBefore).to.equal(collectibleItems);
-    expect(deployerFundsAfter).to.equal(collectibleItems - tokensToBeBought);
+    expect(tokenVaultQtyBefore).to.equal(collectibleItems);
+    expect(tokenVaultQtyAfter).to.equal(collectibleItems - tokensToBeBought);
     expect(userTokensBefore).to.equal(0);
     expect(userTokensAfter).to.equal(tokensToBeBought);
   });
@@ -291,7 +291,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       .to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
   });
 
-  it("must fail if user doesn't have enough ERC20", async function () {
+  it("must fail if user doesn't have enough ERC20 tokens", async function () {
     // Deploy ERC721Mock, StrategyMock and ERC20Mock, and mint `n` tokens on `user` address who is also deployer of the ERC20Mock contract
     const { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, erc20MockTest, addressERC20MockTest } = await deployMockContracts(9);
 

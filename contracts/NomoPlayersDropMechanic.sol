@@ -94,8 +94,8 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
         require(tokens.length >= quantity, "Insufficient available quantity");
 
         uint256[] memory transferredTokens = new uint256[](quantity);
-        uint256 valueDivision = quantity.mul(tokenPrice).div(5);
-  
+        uint256 fraction = quantity.mul(tokenPrice).div(5);
+
         for (uint256 i = 0; i < quantity; i++) {
             uint256 randomNumberIndex = randomGenerator.randomize(
                 tokens.length
@@ -113,15 +113,15 @@ contract NomoPlayersDropMechanic is ReentrancyGuard {
         }
 
         IERC20(erc20Address).transferFrom(
-            msg.sender,
+            msg.sender, 
             daoWalletAddr,
-            valueDivision
+            fraction
         );
 
         IERC20(erc20Address).transferFrom(
             msg.sender,
             strategyContractAddr,
-            valueDivision.mul(4)
+            fraction.mul(4)
         );
 
         emit LogTokensBought(transferredTokens);
