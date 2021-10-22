@@ -7,12 +7,14 @@
 * fill in your `.env` file as per the example provided in `env.example`
 
 ## Intro
-This is a ERC721 compatible contract. It represents a simple contract which accepts native currency as a payment method (depending on the network the contract is going to be deployed on) and will take care for transferring ERC721 tokens to the `msg.sender`. NomoPlayersDropMechanic transfers 20% of the funds to DAO wallet address and 80% to Strategy contract.
+This is a ERC721 compatible contract. It represents a contract, deployed on Polygon(MATIC) which accepts ERC20 tokens as a payment method and will take care for transferring ERC721 tokens to the `msg.sender`. NomoPlayersDropMechanic transfers 20% of the funds, in the form of ERC20 tokens, sent to DAO wallet address and 80% to Strategy contract.
 
 In order the contract to be deployed properly, the contract will require:
-* an array of the token id's
+* an array of the token id's.
 * maximum quantity - will be used for the maximum quantity of tokens which is possible to be bought per transaction.
 * token price - will be used in order to validate whether the `msg.sender` has sent the proper amount later on.
+* erc20Address - address of the associated ERC20 contract instance.
+* erc721Address - address of the associated ERC721 contract instance.
 * DAO wallet address - address where 20% of the funds are going be to sent to.
 * `Strategy` contract address - address where 80% of the funds are going be to sent to.
 * tokens vault - As this contract is not meant to be an owner at any given time, it'll need the original owner which the NomoPlayersDropMechanic contract will transfer the tokens from.
@@ -53,7 +55,7 @@ the background ready for each test run.
 ## Coverage 
 We use [solidity-coverage](https://github.com/sc-forks/solidity-coverage) to 
 provide test coverage reports. 
-In order to have our contract fully tested and prepared for mainnet we made sure that our line of the contract is covered with a test and lays on 100% coverage. In order this to be verified run: 
+In order to have our contract fully tested and prepared for `Matic Mainnet` we made sure that our line of the contract is covered with a test and lays on 100% coverage. In order this to be verified run: 
 ```javascript
 npx hardhat coverage
 ``` 
@@ -65,12 +67,13 @@ NomoPlayersDropMechanic.sol
     - tokens: uint256[]
     - tokenPrice: uint256
     - maxQuantity: uint256
+    - erc20Address: uint256
     - erc721Address: address
-    - daoWalletAddr: payable 
+    - daoWalletAddr: address
     - strategyContractAddr: address
     - tokensVault: address
 
-The default network this will be deployed on is Rinkeby. Once the below command is run, the contract address will be stored in `./scripts/contracts.json`
+The default network this will be deployed on is `Mumbai Testnet`. Once the below command is run, the contract address will be stored in `./scripts/contracts.json`
 
 ```javascript
 npm run contracts:migrate:dev
