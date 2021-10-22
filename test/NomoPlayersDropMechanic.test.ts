@@ -155,11 +155,11 @@ describe("NomoPlayersDropMechanic tests", function () {
     const { addressERC721MockTest, addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
-    const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+    const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
     const fakeTokenPrice = 0;
 
     await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-      mintedTokensTest,
+      mintedTokensDummy,
       fakeTokenPrice,
       maxQuantity,
       addressERC20MockTest,
@@ -173,11 +173,11 @@ describe("NomoPlayersDropMechanic tests", function () {
     const { addressERC721MockTest, addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
-    const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+    const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
     const fakeMaxQuantity = 0;
 
     await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-      mintedTokensTest,
+      mintedTokensDummy,
       tokenPrice,
       fakeMaxQuantity,
       addressERC20MockTest,
@@ -191,10 +191,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     const { addressStrategyMockTest, addressERC721MockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
-    const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+    const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
 
     await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-      mintedTokensTest,
+      mintedTokensDummy,
       tokenPrice,
       maxQuantity,
       zeroAddress,
@@ -208,10 +208,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     const { addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
-    const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+    const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
 
     await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-      mintedTokensTest,
+      mintedTokensDummy,
       tokenPrice,
       maxQuantity,
       addressERC20MockTest,
@@ -225,10 +225,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     const { addressERC721MockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
-    const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+    const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
 
     await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-      mintedTokensTest,
+      mintedTokensDummy,
       tokenPrice,
       maxQuantity,
       addressERC20MockTest,
@@ -242,10 +242,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     const { addressERC721MockTest, addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
 
     const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
-    const mintedTokensTest: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+    const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
 
     await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-      mintedTokensTest,
+      mintedTokensDummy,
       tokenPrice,
       maxQuantity,
       addressERC20MockTest,
@@ -296,6 +296,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     const { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, erc20MockTest, addressERC20MockTest } = await deployMockContracts(9);
 
     const userFundsBefore = await erc20MockTest.balanceOf(userAddress);
+    const tokenVaultQtyBefore = await erc721Mock.balanceOf(deployerAddress);
     const daoWalletFundsBefore = await erc20MockTest.balanceOf(daoWalletAddress);
     const strategyFundsBefore = await erc20MockTest.balanceOf(strategyMock.address);
     const userTokensBefore = await erc721MockTest.balanceOf(userAddress);
@@ -330,12 +331,15 @@ describe("NomoPlayersDropMechanic tests", function () {
       .to.be.revertedWith("ERC20: transfer amount exceeds balance");
 
     const userTokensAfter = await erc721MockTest.balanceOf(userAddress);
+    const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
     const userFundsAfter = await erc20MockTest.balanceOf(userAddress);
     const daoWalletFundsAfter = await erc20MockTest.balanceOf(daoWalletAddress);
     const strategyFundsAfter = await erc20MockTest.balanceOf(strategyMock.address);
     const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
 
     // The state of the balances must not have changed after, because of the reverted transacted
+    expect(tokenVaultQtyBefore).to.equal(collectibleItems);
+    expect(tokenVaultQtyAfter).to.equal(tokenVaultQtyBefore);
     expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems);
     expect(userFundsAfter).to.equal(userFundsBefore);
     expect(strategyFundsBefore).to.equal(0);
