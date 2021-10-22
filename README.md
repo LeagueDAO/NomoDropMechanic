@@ -7,7 +7,7 @@
 * fill in your `.env` file as per the example provided in `env.example`
 
 ## Intro
-This is a ERC721 compatible contract. It represents a contract, deployed on Polygon(MATIC) which accepts DAI tokens as a payment method and will take care for transferring ERC721 tokens to the `msg.sender`. NomoPlayersDropMechanic transfers 20% of the funds, in the form of DAI tokens, sent to DAO wallet address and 80% to Strategy contract.
+This is a ERC721 compatible contract. It represents a contract, deployed on Polygon(MATIC) which accepts ERC20 tokens as a payment method and will take care for transferring ERC721 tokens to the `msg.sender`. NomoPlayersDropMechanic transfers 20% of the funds, in the form of DAI tokens, sent to DAO wallet address and 80% to Strategy contract.
 
 In order the contract to be deployed properly, the contract will require:
 * an array of the token id's.
