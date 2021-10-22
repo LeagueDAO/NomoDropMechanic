@@ -1,4 +1,4 @@
-export const tokenPrice: string = "250000000000000000";
+export const tokenPrice: string = (1 * 10 ** 18).toString();
 
 export const zeroAddress = "0x0000000000000000000000000000000000000000";
 
