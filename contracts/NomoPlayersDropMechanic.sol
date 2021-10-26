@@ -88,7 +88,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * @param _strategyContractAddress address of the associated `Strategy` contract instance
      */
     function setStrategyContractAddress(
-        address payable _strategyContractAddress
+        address _strategyContractAddress
     ) public onlyOwner isValidAddress(_strategyContractAddress) {
         strategyContractAddress = _strategyContractAddress;
         emit LogStrategyContractAddressSet(strategyContractAddress);
@@ -98,7 +98,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * @notice Sets DAO wallet address.
      * @param _daoWalletAddress address of the DAO wallet
      */
-    function setDaoWalletAddress(address payable _daoWalletAddress)
+    function setDaoWalletAddress(address _daoWalletAddress)
         public
         onlyOwner
         isValidAddress(_daoWalletAddress)
@@ -148,7 +148,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * Requirements:
      * - the caller must have sufficient ERC20 tokens.
      */
-    function buyTokens(uint256 quantity) external payable nonReentrant {
+    function buyTokens(uint256 quantity) external nonReentrant {
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
