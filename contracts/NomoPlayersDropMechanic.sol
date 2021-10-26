@@ -21,8 +21,8 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     uint256 public tokenPrice;
     uint256 public maxQuantity;
     address public tokensVault;
-    address payable public daoWalletAddress;
-    address payable public strategyContractAddress;
+    address public daoWalletAddress;
+    address public strategyContractAddress;
     address public erc20Address;
     address public erc721Address;
     uint256 public presaleStartDate;
@@ -37,7 +37,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     event LogPresaleStartDateSet(uint256 _presaleStartDate);
     event LogPresaleDurationSet(uint256 _presaleDuration);
 
-    modifier validAddress(address addr) {
+    modifier isValidAddress(address addr) {
         require(addr != address(0), "Not valid address");
         _;
     }
@@ -56,7 +56,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         address _tokensVault,
         uint256 _tokenPrice,
         uint256 _maxQuantity
-    ) validAddress(_erc721Address) validAddress(_tokensVault) {
+    ) isValidAddress(_erc721Address) isValidAddress(_tokensVault) {
         require(
             tokensArray.length > 0,
             "Tokens array must include at least one item"
@@ -77,7 +77,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function setERC20Address(address _erc20Address)
         public
         onlyOwner
-        validAddress(_erc20Address)
+        isValidAddress(_erc20Address)
     {
         erc20Address = _erc20Address;
         emit LogERC20AddressSet(erc20Address);
@@ -89,7 +89,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      */
     function setStrategyContractAddress(
         address payable _strategyContractAddress
-    ) public onlyOwner validAddress(_strategyContractAddress) {
+    ) public onlyOwner isValidAddress(_strategyContractAddress) {
         strategyContractAddress = _strategyContractAddress;
         emit LogStrategyContractAddressSet(strategyContractAddress);
     }
@@ -101,7 +101,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function setDaoWalletAddress(address payable _daoWalletAddress)
         public
         onlyOwner
-        validAddress(_daoWalletAddress)
+        isValidAddress(_daoWalletAddress)
     {
         daoWalletAddress = _daoWalletAddress;
         emit LogDaoWalletAddressSet(daoWalletAddress);

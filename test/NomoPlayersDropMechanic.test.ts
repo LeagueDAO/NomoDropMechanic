@@ -96,8 +96,124 @@ describe("NomoPlayersDropMechanic tests", function () {
     await erc721Mock.setApprovalForAll(nomoPlayersDropMechanicAddress, true, { from: deployerAddress });
   });
 
+  it("should emit LogERC20AddressSet event", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setERC20Address(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogERC20AddressSet");
+  });
+
+  it("should set ERC20 address", async function () {
+    await nomoPlayersDropMechanicContract.connect(deployer).setERC20Address(testAddress);
+    const erc20Address = await nomoPlayersDropMechanicContract.connect(deployer).erc20Address();
+    expect(testAddress).to.equal(erc20Address)
+  });
+
+  it("must fail to set ERC20 address if msg.sender isn't owner", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(user).setERC20Address(testAddress))
+      .to.be.revertedWith("Ownable: caller is not the owner");
+  });
+
+  it("must fail to set ERC20 address isn't valid", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setERC20Address(zeroAddress))
+      .to.be.revertedWith("Not valid address");
+  });
+  
+  
+  it("should emit LogStrategyContractAddressSet event", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setStrategyContractAddress(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogStrategyContractAddressSet");
+  });
+
+  it("should set Strategy contract address", async function () {
+    await nomoPlayersDropMechanicContract.connect(deployer).setStrategyContractAddress(testAddress);
+    const strategyContractAddress = await nomoPlayersDropMechanicContract.connect(deployer).strategyContractAddress();
+    expect(testAddress).to.equal(strategyContractAddress)
+  });
+
+  it("must fail to set Strategy contract address if msg.sender isn't owner", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(user).setStrategyContractAddress(testAddress))
+      .to.be.revertedWith("Ownable: caller is not the owner");
+  });
+
+  it("must fail to set Strategy contract address isn't valid", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setStrategyContractAddress(zeroAddress))
+      .to.be.revertedWith("Not valid address");
+  });
+  
+  
+  it("should emit LogDaoWalletAddressSet event", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setDaoWalletAddress(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogDaoWalletAddressSet");
+  });
+
+  it("should set Dao wallet address", async function () {
+    await nomoPlayersDropMechanicContract.connect(deployer).setDaoWalletAddress(testAddress);
+    const daoWalletAddress = await nomoPlayersDropMechanicContract.connect(deployer).daoWalletAddress();
+    expect(testAddress).to.equal(daoWalletAddress)
+  });
+
+  it("must fail to set Dao wallet address if msg.sender isn't owner", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(user).setDaoWalletAddress(testAddress))
+      .to.be.revertedWith("Ownable: caller is not the owner");
+  });
+
+  it("must fail to set Dao wallet address isn't valid", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setDaoWalletAddress(zeroAddress))
+      .to.be.revertedWith("Not valid address");
+  });
+  
+  
+  it("should set presale start date", async function () {
+    const unixTimeStampStartDate = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 2);
+    await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+    const presaleStartDate = await nomoPlayersDropMechanicContract.connect(deployer).presaleStartDate();
+    expect(unixTimeStampStartDate).to.equal(presaleStartDate)
+  });
+
+  it("should emit LogPresaleStartDateSet event", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogPresaleStartDateSet");
+  });
+
+  it("must fail to set presale start date if msg.sender isn't owner", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(user).setPresaleStartDate(testAddress))
+      .to.be.revertedWith("Ownable: caller is not the owner");
+  });
+
+  it("must fail to set presale start date if it's in the past", async function () {
+    const unixTimeStampStartDate = Math.floor(Date.now() / 1000) - 10;
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate))
+      .to.be.revertedWith("Presale start date can't be in the past");
+  });
+  
+  
+  it("should emit LogPresaleDurationSet event", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogPresaleDurationSet");
+  });
+  
+  it("should set presale duration", async function () {
+    const presalePeriod = 60 * 60 * 2; // 2 hours
+
+    await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(presalePeriod);
+    const presaleDurationSet = await nomoPlayersDropMechanicContract.connect(deployer).presaleDuration();
+    expect(presalePeriod).to.equal(presaleDurationSet)
+  });
+
+  it("must fail to set presale duration if msg.sender isn't owner", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(user).setPresaleDuration(testAddress))
+      .to.be.revertedWith("Ownable: caller is not the owner");
+  });
+
+  it("must fail to set presale duration if presale duration is zero", async function () {
+    await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(0))
+      .to.be.revertedWith("Presale duration must be higher than zero");
+  });
+  
+
   it("should deploy NomoPlayersDropMechanic contract", async function () {
     expect(nomoPlayersDropMechanicContract.address).to.not.equal(zeroAddress);
+  });
+
+  it("should emit LogTokensBought event", async function () {
+    const tokensToBeBought = 1;
+    const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
+    await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought)).to.emit(nomoPlayersDropMechanicContract, "LogTokensBought");
   });
 
   it("should buy tokens from NomoPlayersDropMechanic contract", async function () {
@@ -129,72 +245,6 @@ describe("NomoPlayersDropMechanic tests", function () {
     expect(tokenVaultQtyAfter).to.equal(collectibleItems - tokensToBeBought);
     expect(userTokensBefore).to.equal(0);
     expect(userTokensAfter).to.equal(tokensToBeBought);
-  });
-
-  it("should emit LogTokensBought event", async function () {
-    const tokensToBeBought = 1;
-    const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
-    await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought)).to.emit(nomoPlayersDropMechanicContract, "LogTokensBought");
-  });
-
-  it("should emit LogERC20AddressSet event", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setERC20Address(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogERC20AddressSet");
-  });
-
-  it("should emit LogDaoWalletAddressSet event", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setDaoWalletAddress(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogDaoWalletAddressSet");
-  });
-
-  it("should emit LogStrategyContractAddressSet event", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setStrategyContractAddress(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogStrategyContractAddressSet");
-  });
-
-  it("should emit LogPresaleStartDateSet event", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogPresaleStartDateSet");
-  });
-
-  it("should emit LogPresaleDurationSet event", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogPresaleDurationSet");
-  });
-
-  it("should set ERC20 address", async function () {
-    const erc20AddressSetTx = await nomoPlayersDropMechanicContract.connect(deployer).setERC20Address(testAddress);
-    await erc20AddressSetTx.wait();
-    const erc20Address = await nomoPlayersDropMechanicContract.connect(deployer).erc20Address();
-    expect(testAddress).to.equal(erc20Address)
-  });
-
-  it("should set Strategy contract address", async function () {
-    const strategyContractAddressSetTx = await nomoPlayersDropMechanicContract.connect(deployer).setStrategyContractAddress(testAddress);
-    await strategyContractAddressSetTx.wait()
-    const strategyContractAddress = await nomoPlayersDropMechanicContract.connect(deployer).strategyContractAddress();
-    expect(testAddress).to.equal(strategyContractAddress)
-  });
-
-  it("should set Dao wallet address", async function () {
-    const daoWalletAddressSetTx = await nomoPlayersDropMechanicContract.connect(deployer).setDaoWalletAddress(testAddress);
-    await daoWalletAddressSetTx.wait()
-    const daoWalletAddress = await nomoPlayersDropMechanicContract.connect(deployer).daoWalletAddress();
-    expect(testAddress).to.equal(daoWalletAddress)
-  });
-
-  it("should set presale start date", async function () {
-    const unixTimeStampStartDate = (new Date('2021.12.26').getTime() / 1000) + (60 * 60 * 13); // 2021/12/26 13:00
-
-    const presaleStartDateSetTx = await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
-    await presaleStartDateSetTx.wait();
-    const presaleStartDate = await nomoPlayersDropMechanicContract.connect(deployer).presaleStartDate();
-    expect(unixTimeStampStartDate).to.equal(presaleStartDate)
-  });
-
-  it("should set presale duration", async function () {
-    const unixDuration = 60 * 60 * 2; // 2 hours
-   
-    const presaleDurationSetTx = await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(unixDuration);
-    await presaleDurationSetTx.wait()
-    const presaleDurationSet = await nomoPlayersDropMechanicContract.connect(deployer).presaleDuration();
-    expect(unixDuration).to.equal(presaleDurationSet)
   });
 
   it("must fail to deploy NomoPlayersDropMechanic contract if tokens array is empty", async () => {
@@ -257,57 +307,6 @@ describe("NomoPlayersDropMechanic tests", function () {
     const tokensToBeBought = 0;
     await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought))
       .to.be.revertedWith("Invalid quantity");
-  });
-
-  it("must fail to set ERC20 address if msg.sender isn't owner", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(user).setERC20Address(testAddress))
-      .to.be.revertedWith("Ownable: caller is not the owner");
-  });
-
-  it("must fail to set Strategy contract address if msg.sender isn't owner", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(user).setStrategyContractAddress(testAddress))
-      .to.be.revertedWith("Ownable: caller is not the owner");
-  });
-
-  it("must fail to set Dao wallet address if msg.sender isn't owner", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(user).setDaoWalletAddress(testAddress))
-      .to.be.revertedWith("Ownable: caller is not the owner");
-  });
-
-  it("must fail to set presale start date if msg.sender isn't owner", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(user).setPresaleStartDate(testAddress))
-      .to.be.revertedWith("Ownable: caller is not the owner");
-  });
-
-  it("must fail to set presale duration if msg.sender isn't owner", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(user).setPresaleDuration(testAddress))
-      .to.be.revertedWith("Ownable: caller is not the owner");
-  });
-
-  it("must fail to set ERC20 address isn't valid", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setERC20Address(zeroAddress))
-      .to.be.revertedWith("Not valid address");
-  });
-
-  it("must fail to set Strategy contract address isn't valid", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setStrategyContractAddress(zeroAddress))
-      .to.be.revertedWith("Not valid address");
-  });
-
-  it("must fail to set Dao wallet address isn't valid", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setDaoWalletAddress(zeroAddress))
-      .to.be.revertedWith("Not valid address");
-  });
-
-  it("must fail to set presale start date if it's in the past", async function () {
-    const unixTimeStampStartDate = (new Date('2021.10.25').getTime() / 1000) + (60 * 60 * 13);
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate))
-      .to.be.revertedWith("Presale start date can't be in the past");
-  });
-
-  it("must fail to set presale duration if presale duration is zero", async function () {
-    await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(0))
-      .to.be.revertedWith("Presale duration must be higher than zero");
   });
 
   it("must fail if quantity is higher than the items in the collection", async function () {
