@@ -113,7 +113,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
   it("must fail to set ERC20 address isn't valid", async function () {
     await expect(nomoPlayersDropMechanicContract.connect(deployer).setERC20Address(zeroAddress))
-      .to.be.revertedWith("Not valid address");
+      .to.be.revertedWith("Not a valid address!");
   });
   
   
@@ -134,7 +134,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
   it("must fail to set Strategy contract address isn't valid", async function () {
     await expect(nomoPlayersDropMechanicContract.connect(deployer).setStrategyContractAddress(zeroAddress))
-      .to.be.revertedWith("Not valid address");
+      .to.be.revertedWith("Not a valid address!");
   });
   
   
@@ -155,7 +155,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
   it("must fail to set Dao wallet address isn't valid", async function () {
     await expect(nomoPlayersDropMechanicContract.connect(deployer).setDaoWalletAddress(zeroAddress))
-      .to.be.revertedWith("Not valid address");
+      .to.be.revertedWith("Not a valid address!");
   });
   
   
@@ -300,7 +300,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       zeroAddress,
       deployerAddress,
       tokenPrice,
-      maxQuantity) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Not valid address');
+      maxQuantity) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Not a valid address!');
   });
 
   it("must fail if requested quantity is lower or equal to zero", async function () {
