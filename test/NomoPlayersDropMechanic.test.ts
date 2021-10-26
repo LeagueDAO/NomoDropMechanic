@@ -217,7 +217,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     const tokensToBeBought = 1;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
     await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought)).to.emit(nomoPlayersDropMechanicContract, "LogTokensBought");
+    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought)).to.emit(nomoPlayersDropMechanicContract, "LogTokensBought");
   });
 
   it("should buy tokens from NomoPlayersDropMechanic contract", async function () {
@@ -230,8 +230,8 @@ describe("NomoPlayersDropMechanic tests", function () {
     const tokensToBeBought = 7;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
     await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-    const buyTokensTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought);
-    await buyTokensTx.wait();
+    const buyTokensOnSaleTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought);
+    await buyTokensOnSaleTx.wait();
 
     const userTokensAfter = await erc721Mock.balanceOf(userAddress);
     const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
@@ -309,7 +309,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
   it("must fail if requested quantity is lower or equal to zero", async function () {
     const tokensToBeBought = 0;
-    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought))
+    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought))
       .to.be.revertedWith("Invalid quantity");
   });
 
@@ -317,12 +317,12 @@ describe("NomoPlayersDropMechanic tests", function () {
     const tokensToBeBought1 = 20;
     const value1 = BigNumber.from(tokensToBeBought1).mul(tokenPrice);
     await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value1);
-    await nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought1);
+    await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought1);
 
     const tokensToBeBought2 = 6;
     const value2 = BigNumber.from(tokensToBeBought1).mul(tokenPrice);
     await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value2);
-    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought2))
+    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought2))
       .to.be.revertedWith("Insufficient available quantity");
   });
 
@@ -330,7 +330,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     const tokensToBeBought = 21;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
     await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought))
+    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought))
       .to.be.revertedWith("Invalid quantity");
   });
 
@@ -339,7 +339,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     const tokensToBeBought = 10;
     const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
     await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokens(tokensToBeBought))
+    await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought))
       .to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
   });
 
@@ -380,7 +380,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     // Approve nomoPlayersDropMechanicTestContract to spend user's tokens
     await erc20MockTest.connect(user).approve(nomoPlayersDropMechanicTestAddress, value);
 
-    await expect(nomoPlayersDropMechanicTestContract.connect(user).buyTokens(tokensToBeBought))
+    await expect(nomoPlayersDropMechanicTestContract.connect(user).buyTokensOnSale(tokensToBeBought))
       .to.be.revertedWith("ERC20: transfer amount exceeds balance");
 
     const userTokensAfter = await erc721MockTest.balanceOf(userAddress);

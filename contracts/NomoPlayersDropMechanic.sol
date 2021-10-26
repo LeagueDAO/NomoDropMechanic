@@ -27,6 +27,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     address public erc721Address;
     uint256 public presaleStartDate;
     uint256 public presaleDuration;
+    mapping(address => bool) whitelisted;
 
     RandomGenerator.Random internal randomGenerator;
 
@@ -87,9 +88,11 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * @notice Sets `Strategy` contract address associated with `Strategy` contract instance.
      * @param _strategyContractAddress address of the associated `Strategy` contract instance
      */
-    function setStrategyContractAddress(
-        address _strategyContractAddress
-    ) public onlyOwner isValidAddress(_strategyContractAddress) {
+    function setStrategyContractAddress(address _strategyContractAddress)
+        public
+        onlyOwner
+        isValidAddress(_strategyContractAddress)
+    {
         strategyContractAddress = _strategyContractAddress;
         emit LogStrategyContractAddressSet(strategyContractAddress);
     }
@@ -133,7 +136,20 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         emit LogPresaleDurationSet(presaleDuration);
     }
 
-    // TODO implement setWhitelisted() in next iteration of the presale functionality
+    /**
+     * @notice Sets whitelisted.
+     * @param beneficiers address[] representing the user who will be whitelisted
+     */
+    function setWhitelisted(address[] memory beneficiers) public onlyOwner {
+        require(
+            beneficiers.length > 0,
+            "Beneficiers array must include at least one address"
+        );
+
+        for (uint256 i = 0; i < beneficiers.length; i++) {
+            whitelisted[beneficiers[i]] = true;
+        }
+    }
 
     /**
      * @notice Distributes the requested quantity by the user and transfers the funds to DAO wallet address and Strategy contract.
@@ -148,7 +164,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * Requirements:
      * - the caller must have sufficient ERC20 tokens.
      */
-    function buyTokens(uint256 quantity) external nonReentrant {
+    function buyTokens(uint256 quantity) internal nonReentrant {
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
@@ -187,6 +203,39 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         );
 
         emit LogTokensBought(transferredTokens);
+    }
+
+    /**
+     * @notice Invokes `buyTokens` if presale has started and msg.sender is whitelisted.
+     *
+     * Requirements:
+     * - the caller must be whitelisted.
+     * - the presale must have started.
+     */
+    function buyTokensOnPresale() public {
+        require(
+            (block.timestamp > presaleStartDate) &&
+                (block.timestamp < (presaleStartDate + presaleDuration)),
+            "Current timestamp is not in the bounds of the presale period"
+        );
+        require(
+            whitelisted[msg.sender],
+            "Msg.sender is not whitelisted or has already claimed!"
+        );
+
+        buyTokens(1);
+    }
+
+    /**
+     * @notice Invokes `buyTokens` with the quantity requested.
+     */
+    function buyTokensOnSale(uint256 quantity) public {
+        require(
+            block.timestamp > (presaleStartDate + presaleDuration),
+            "Current timestamp is not in the bounds of the sale period"
+        );
+
+        buyTokens(quantity);
     }
 
     /**
