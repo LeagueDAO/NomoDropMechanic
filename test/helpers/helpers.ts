@@ -1,4 +1,5 @@
 import { ContractReceipt } from 'ethers';
+import { ethers } from "hardhat";
 
 export function getTokensFromEventArgs(txReceipt: ContractReceipt, eventName: string) {
     let storage: string[] = [];
@@ -10,4 +11,10 @@ export function getTokensFromEventArgs(txReceipt: ContractReceipt, eventName: st
         }
     }
     return storage;
+}
+
+export async function getBlockTimestamp() {
+    const blockNumber = await ethers.provider.getBlockNumber()
+    const block = await ethers.provider.getBlock(blockNumber)
+    return block.timestamp;
 }

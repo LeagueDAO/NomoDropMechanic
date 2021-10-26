@@ -3,7 +3,7 @@ import hre, { ethers } from "hardhat";
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock } from '../typechain';
 import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
 import { tokenPrice, collectibleItems, maxQuantity, testAddress, zeroAddress } from './helpers/constants';
-import { getTokensFromEventArgs } from './helpers/helpers';
+import { getTokensFromEventArgs, getBlockTimestamp } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
 let user: Signer, userAddress: string;
@@ -160,7 +160,10 @@ describe("NomoPlayersDropMechanic tests", function () {
   
   
   it("should set presale start date", async function () {
-    const unixTimeStampStartDate = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 2);
+    const timestamp = await getBlockTimestamp();
+    const TWO_DAYS = 60 * 60 * 24 * 2;
+    const unixTimeStampStartDate = timestamp + TWO_DAYS;
+   
     await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
     const presaleStartDate = await nomoPlayersDropMechanicContract.connect(deployer).presaleStartDate();
     expect(unixTimeStampStartDate).to.equal(presaleStartDate)
@@ -176,7 +179,8 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   it("must fail to set presale start date if it's in the past", async function () {
-    const unixTimeStampStartDate = Math.floor(Date.now() / 1000) - 10;
+    const timestamp = await getBlockTimestamp();
+    const unixTimeStampStartDate = timestamp - 1;
     await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate))
       .to.be.revertedWith("Presale start date can't be in the past");
   });
