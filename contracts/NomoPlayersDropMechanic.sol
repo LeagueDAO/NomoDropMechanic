@@ -17,7 +17,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using RandomGenerator for RandomGenerator.Random;
 
-    uint256[] public tokens;
+    uint256[] private tokens;
     uint256 public tokenPrice;
     uint256 public maxQuantity;
     address public tokensVault;
