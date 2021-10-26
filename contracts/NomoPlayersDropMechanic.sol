@@ -139,19 +139,19 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
     /**
      * @notice Sets whitelisted.
-     * @param beneficier address[] representing the user who will be whitelisted
+     * @param beneficiers address[] representing the user who will be whitelisted
      */
-    function setWhitelisted(address[] memory beneficier) public onlyOwner {
+    function setWhitelisted(address[] memory beneficiers) public onlyOwner {
         require(
-            beneficier.length > 0,
+            beneficiers.length > 0,
             "Benefficients array must include at least one address"
         );
 
-        for (uint256 i = 0; i < beneficier.length; i++) {
-            whitelisted[beneficier[i]] = true;
+        for (uint256 i = 0; i < beneficiers.length; i++) {
+            whitelisted[beneficiers[i]] = true;
         }
 
-        emit LogWhitelistedSet(beneficier);
+        emit LogWhitelistedSet(beneficiers);
     }
 
     /**
