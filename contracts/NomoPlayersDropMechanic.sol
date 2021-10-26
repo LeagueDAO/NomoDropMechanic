@@ -144,7 +144,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function setWhitelisted(address[] memory beneficiers) public onlyOwner {
         require(
             beneficiers.length > 0,
-            "Benefficients array must include at least one address"
+            "Beneficiers array must include at least one address"
         );
 
         for (uint256 i = 0; i < beneficiers.length; i++) {
@@ -207,6 +207,13 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
         emit LogTokensBought(transferredTokens);
     }
+
+    /**
+     * TODO:
+     *
+     * We can create better and more explicit messages for require statements?
+     *
+     */
 
     /**
      * @notice Invokes `buyTokens` if presale has started and msg.sender is whitelisted.
