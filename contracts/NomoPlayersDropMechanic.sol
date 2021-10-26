@@ -27,7 +27,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     address public erc721Address;
     uint256 public presaleStartDate;
     uint256 public presaleDuration;
-    mapping(address => bool) whitelisted;
+    mapping(address => bool) public whitelisted;
 
     RandomGenerator.Random internal randomGenerator;
 
@@ -37,6 +37,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     event LogDaoWalletAddressSet(address _daoWalletAddress);
     event LogPresaleStartDateSet(uint256 _presaleStartDate);
     event LogPresaleDurationSet(uint256 _presaleDuration);
+    event LogWhitelistedSet(address[] _whitelisted);
 
     modifier isValidAddress(address addr) {
         require(addr != address(0), "Not a valid address!");
@@ -138,17 +139,19 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
     /**
      * @notice Sets whitelisted.
-     * @param beneficiers address[] representing the user who will be whitelisted
+     * @param beneficier address[] representing the user who will be whitelisted
      */
-    function setWhitelisted(address[] memory beneficiers) public onlyOwner {
+    function setWhitelisted(address[] memory beneficier) public onlyOwner {
         require(
-            beneficiers.length > 0,
-            "Beneficiers array must include at least one address"
+            beneficier.length > 0,
+            "Benefficients array must include at least one address"
         );
 
-        for (uint256 i = 0; i < beneficiers.length; i++) {
-            whitelisted[beneficiers[i]] = true;
+        for (uint256 i = 0; i < beneficier.length; i++) {
+            whitelisted[beneficier[i]] = true;
         }
+
+        emit LogWhitelistedSet(beneficier);
     }
 
     /**
@@ -164,7 +167,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * Requirements:
      * - the caller must have sufficient ERC20 tokens.
      */
-    function buyTokens(uint256 quantity) internal nonReentrant {
+    function buyTokens(uint256 quantity) private nonReentrant {
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
@@ -224,6 +227,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         );
 
         buyTokens(1);
+        whitelisted[msg.sender] = false;
     }
 
     /**
