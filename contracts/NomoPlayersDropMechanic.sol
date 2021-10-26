@@ -153,7 +153,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
         emit LogWhitelistedSet(beneficiers);
     }
-
+    
     /**
      * @notice Distributes the requested quantity by the user and transfers the funds to DAO wallet address and Strategy contract.
      

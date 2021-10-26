@@ -245,7 +245,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail to set whitelisted if whitelisted array does not have any addresses", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([])).to.be.revertedWith("Benefficients array must include at least one address");
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([])).to.be.revertedWith("Beneficiers array must include at least one address");
     });
   });
 
