@@ -38,7 +38,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     event LogPresaleDurationSet(uint256 _presaleDuration);
 
     modifier isValidAddress(address addr) {
-        require(addr != address(0), "Not valid address");
+        require(addr != address(0), "Not a valid address!");
         _;
     }
 
