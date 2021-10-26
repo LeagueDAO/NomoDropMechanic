@@ -1,6 +1,6 @@
 {
   "network": "mumbai",
-  "nomoPlayersDropMechanic": "0x82A59E0E68eb9F4C60f1c433d177Eb43eC8fdaEd",
+  "nomoPlayersDropMechanic": "0x24249370E312Ecff6d8d3003236a3a7Fe777796c",
   "mintedTokens": [
     1,
     2,
@@ -103,10 +103,8 @@
     99,
     100
   ],
-  "price": "250000000000000000",
-  "maxQuantity": 20,
   "erc721Address": "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3",
-  "daoWalletAddress": "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3",
-  "strategyContractAddress": "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3",
-  "tokensVault": "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3"
+  "tokensVault": "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3",
+  "price": "250000000000000000",
+  "maxQuantity": 20
 }

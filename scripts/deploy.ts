@@ -23,12 +23,14 @@ export async function deployNomoPlayersDropMechanic() {
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
   const nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
     mintedTokens,
-    price,
-    maxQuantity,
     erc721Address,
-    daoWalletAddress,
-    strategyContractAddress,
-    tokensVault) as NomoPlayersDropMechanic;
+    tokensVault,
+    price,
+    maxQuantity) as NomoPlayersDropMechanic;
+
+  await nomoPlayersDropMechanicContract.setERC20Address(erc721Address);
+  await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
+  await nomoPlayersDropMechanicContract.setStrategyContractAddress(strategyContractAddress);
 
   console.log('Deploying NomoPlayersDropMechanic, please wait...');
 
@@ -40,12 +42,10 @@ export async function deployNomoPlayersDropMechanic() {
     network: hre.network.name,
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
     mintedTokens,
-    price,
-    maxQuantity,
     erc721Address,
-    daoWalletAddress,
-    strategyContractAddress,
-    tokensVault
+    tokensVault,
+    price,
+    maxQuantity
   }, null, 2));
 
   // After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract

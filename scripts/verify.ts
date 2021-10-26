@@ -18,16 +18,14 @@ export async function verifyNomoPlayersDropMechanic(): Promise<void> {
             address: contracts.nomoPlayersDropMechanic,
             constructorArguments: [
                 contracts.mintedTokens,
+                contracts.erc721Address,
+                contracts.tokensVault,
                 contracts.price,
                 contracts.maxQuantity,
-                contracts.erc721Address,
-                contracts.daoWalletAddress,
-                contracts.strategyContractAddress,
-                contracts.tokensVault
             ],
         });
     } catch (error: any) {
-       logError('NomoPlayersDropMechanic', error.message);
+        logError('NomoPlayersDropMechanic', error.message);
     }
 
 }

@@ -1,6 +1,6 @@
 import { ContractReceipt } from 'ethers';
 
-export function getTokensFromEventArgs(txReceipt: ContractReceipt, eventName: string,) {
+export function getTokensFromEventArgs(txReceipt: ContractReceipt, eventName: string) {
     let storage: string[] = [];
     for (const event of txReceipt.events as Array<any>) {
         if (event.event == eventName) {
