@@ -118,7 +118,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function setPresaleStartDate(uint256 _presaleStartDate) public onlyOwner {
         require(
             _presaleStartDate > block.timestamp,
-            "Presale start date can't be in the past"
+            "Presale: start must be in future!"
         );
         presaleStartDate = _presaleStartDate;
         emit LogPresaleStartDateSet(presaleStartDate);
@@ -207,13 +207,6 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
         emit LogTokensBought(transferredTokens);
     }
-
-    /**
-     * TODO:
-     *
-     * We can create better and more explicit messages for require statements?
-     *
-     */
 
     /**
      * @notice Invokes `buyTokens` if presale has started and msg.sender is whitelisted.

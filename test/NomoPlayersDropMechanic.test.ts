@@ -199,7 +199,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       const timestamp = await getBlockTimestamp();
       const unixStartDate = timestamp - 1;
       await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate))
-        .to.be.revertedWith("Presale start date can't be in the past");
+        .to.be.revertedWith("Presale: start must be in future!");
     });
   });
 
