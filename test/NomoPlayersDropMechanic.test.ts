@@ -236,7 +236,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted(whitelistedArrayAddresses)).to.emit(nomoPlayersDropMechanicContract, "LogWhitelistedSet");
     });
 
-    it("should set only unique whitelisted address", async function () {
+    it("should set whitelisted addresses", async function () {
       await nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted(whitelistedArrayAddresses);
 
       let whitelistedAddresses = [];
@@ -371,9 +371,8 @@ describe("NomoPlayersDropMechanic tests", function () {
       const value = BigNumber.from(tokensToBeApproved).mul(tokenPrice);
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
 
-      const buyTokensOnSaleTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
+      await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
 
-      // Here we use `deployer` as a signer, who is not whitelisted in the presale
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale()).to.be.revertedWith("Msg.sender is not whitelisted or has already claimed!");
     });
   });
