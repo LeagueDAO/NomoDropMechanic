@@ -17,7 +17,7 @@ In order the contract to be deployed properly, the contract will require:
 * maximum quantity - will be used for the maximum quantity of tokens which is possible to be bought per transaction.
 
 In order the contract functions to operate, the contract will require:
-* presaleStartDate contract address to be set in `setERC20Address` - address of the associated ERC20 contract instance.
+* erc20 contract address to be set in `setERC20Address` - address of the associated ERC20 contract instance.
 * `Strategy` contract address to be set in `setStrategyContractAddress` - address where 80% of the funds are going be to sent to.
 * DAO wallet address to be set in `setDaoWalletAddress` - address where 20% of the funds are going be to sent to.
 
