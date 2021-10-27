@@ -321,7 +321,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
 
-      const OVERTIME = TWO_HOURS + 61;
+      const OVERTIME = TWO_HOURS + ONE_MIN + 1;
       await network.provider.send("evm_increaseTime", [OVERTIME]);
 
       const tokensToBeApproved = 1;
