@@ -40,7 +40,7 @@ describe("Randomize tests", function () {
      * Hence, this test has to prove that the function hits each number at least one time,
      * by the probability theory it is calculated that the chance of getting the highest index
      * (which is the most rare since we decrease the array from the last index, in our case
-     *  it is 9), is `1 / (n / 2)(firstNum + secondNum)` or equal to 1.8181%, which means we should 
+     *  it is 9), is `1 / (n / 2)(firstNum + lastNum)` or equal to 1.8181%, which means we should 
      * have roughly 5.5 collections of 10 NFTs.
      * For the sake of the example, the test contains of 6 or 60 invocations of `buyTokensMock`.
      */

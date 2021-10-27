@@ -84,13 +84,23 @@ describe("NomoPlayersDropMechanic tests", function () {
       tokenPrice,
       maxQuantity) as NomoPlayersDropMechanic;
 
+    await nomoPlayersDropMechanicContract.connect(deployer).deployed();
 
     await nomoPlayersDropMechanicContract.setERC20Address(addressERC20Mock);
     await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
     await nomoPlayersDropMechanicContract.setStrategyContractAddress(addressStrategyMock);
     await nomoPlayersDropMechanicContract.setWhitelisted([userAddress]);
 
-    await nomoPlayersDropMechanicContract.connect(deployer).deployed();
+    const timestamp = await getBlockTimestamp();
+    const ONE_MIN = 60;
+    const unixTimeStampStartDate = timestamp + ONE_MIN;
+    await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+
+    const TWO_HOURS = 60 * 60 * 2;
+    await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
+
+    const OVERTIME = (60 * 60 * 2) + 61;
+    await network.provider.send("evm_increaseTime", [OVERTIME]); // Simulate presale has finished
 
     nomoPlayersDropMechanicAddress = nomoPlayersDropMechanicContract.address;
 
@@ -249,7 +259,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
-  context("for tokens buying on presale", () => {
+  context("for tokens purchasing on presale", () => {
     it("should buy tokens on presale from NomoPlayersDropMechanic contract", async function () {
       const timestamp = await getBlockTimestamp();
       const ONE_MIN = 60;
@@ -368,7 +378,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
-  context("for tokens buying on sale", () => {
+  context("for tokens purchasing on sale", () => {
     it("should emit LogTokensBought event", async function () {
       const tokensToBeBought = 1;
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
@@ -377,17 +387,6 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("should buy tokens from NomoPlayersDropMechanic contract", async function () {
-      const timestamp = await getBlockTimestamp();
-      const ONE_MIN = 60;
-      const unixTimeStampStartDate = timestamp + ONE_MIN;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
-
-      const TWO_HOURS = 60 * 60 * 2;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
-
-      const OVERTIME = (60 * 60 * 2) + 61;
-      await network.provider.send("evm_increaseTime", [OVERTIME]); // Simulate presale has finished
-
       const userFundsBefore = await erc20Mock.balanceOf(userAddress);
       const daoWalletFundsBefore = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
