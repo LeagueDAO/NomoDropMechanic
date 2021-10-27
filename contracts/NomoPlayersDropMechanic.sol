@@ -27,6 +27,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     address public erc721Address;
     uint256 public presaleStartDate;
     uint256 public presaleDuration;
+    mapping(address => bool) public whitelisted;
 
     RandomGenerator.Random internal randomGenerator;
 
@@ -36,6 +37,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     event LogDaoWalletAddressSet(address _daoWalletAddress);
     event LogPresaleStartDateSet(uint256 _presaleStartDate);
     event LogPresaleDurationSet(uint256 _presaleDuration);
+    event LogWhitelistedSet(address[] _whitelisted);
 
     modifier isValidAddress(address addr) {
         require(addr != address(0), "Not a valid address!");
@@ -87,9 +89,11 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * @notice Sets `Strategy` contract address associated with `Strategy` contract instance.
      * @param _strategyContractAddress address of the associated `Strategy` contract instance
      */
-    function setStrategyContractAddress(
-        address _strategyContractAddress
-    ) public onlyOwner isValidAddress(_strategyContractAddress) {
+    function setStrategyContractAddress(address _strategyContractAddress)
+        public
+        onlyOwner
+        isValidAddress(_strategyContractAddress)
+    {
         strategyContractAddress = _strategyContractAddress;
         emit LogStrategyContractAddressSet(strategyContractAddress);
     }
@@ -114,7 +118,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function setPresaleStartDate(uint256 _presaleStartDate) public onlyOwner {
         require(
             _presaleStartDate > block.timestamp,
-            "Presale start date can't be in the past"
+            "Presale: start must be in future!"
         );
         presaleStartDate = _presaleStartDate;
         emit LogPresaleStartDateSet(presaleStartDate);
@@ -127,14 +131,29 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function setPresaleDuration(uint256 _presaleDuration) public onlyOwner {
         require(
             _presaleDuration > 0,
-            "Presale duration must be higher than zero"
+            "Presale: not a valid duration!"
         );
         presaleDuration = _presaleDuration;
         emit LogPresaleDurationSet(presaleDuration);
     }
 
-    // TODO implement setWhitelisted() in next iteration of the presale functionality
+    /**
+     * @notice Sets whitelisted.
+     * @param beneficiaries address[] representing the user who will be whitelisted
+     */
+    function setWhitelisted(address[] memory beneficiaries) public onlyOwner {
+        require(
+            beneficiaries.length > 0,
+            "Beneficiaries array must include at least one address"
+        );
 
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            whitelisted[beneficiaries[i]] = true;
+        }
+
+        emit LogWhitelistedSet(beneficiaries);
+    }
+    
     /**
      * @notice Distributes the requested quantity by the user and transfers the funds to DAO wallet address and Strategy contract.
      
@@ -148,7 +167,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * Requirements:
      * - the caller must have sufficient ERC20 tokens.
      */
-    function buyTokens(uint256 quantity) external nonReentrant {
+    function buyTokens(uint256 quantity) private nonReentrant {
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
@@ -187,6 +206,40 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         );
 
         emit LogTokensBought(transferredTokens);
+    }
+
+    /**
+     * @notice Invokes `buyTokens` if presale has started and msg.sender is whitelisted.
+     *
+     * Requirements:
+     * - the caller must be whitelisted.
+     * - the presale must have started.
+     */
+    function buyTokensOnPresale() public {
+        require(
+            (block.timestamp > presaleStartDate) &&
+                (block.timestamp < (presaleStartDate + presaleDuration)),
+            "Current timestamp is not in the bounds of the presale period"
+        );
+        require(
+            whitelisted[msg.sender],
+            "Claiming is forbidden"
+        );
+
+        buyTokens(1);
+        whitelisted[msg.sender] = false;
+    }
+
+    /**
+     * @notice Invokes `buyTokens` with the quantity requested.
+     */
+    function buyTokensOnSale(uint256 quantity) public {
+        require(
+            block.timestamp > (presaleStartDate + presaleDuration),
+            "Sale period not started!"
+        );
+
+        buyTokens(quantity);
     }
 
     /**
