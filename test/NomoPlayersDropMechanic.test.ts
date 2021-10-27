@@ -2,7 +2,7 @@ const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock } from '../typechain';
 import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
-import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress } from './helpers/constants';
+import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN, ONE_HOUR, TWO_HOURS } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
@@ -92,14 +92,12 @@ describe("NomoPlayersDropMechanic tests", function () {
     await nomoPlayersDropMechanicContract.setWhitelisted([userAddress]);
 
     const timestamp = await getBlockTimestamp();
-    const ONE_MIN = 60;
-    const unixTimeStampStartDate = timestamp + ONE_MIN;
-    await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+    const unixStartDate = timestamp + ONE_MIN;
 
-    const TWO_HOURS = 60 * 60 * 2;
+    await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
     await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
 
-    const OVERTIME = (60 * 60 * 2) + 61;
+    const OVERTIME = TWO_HOURS + 61;
     await network.provider.send("evm_increaseTime", [OVERTIME]); // Simulate presale has finished
 
     nomoPlayersDropMechanicAddress = nomoPlayersDropMechanicContract.address;
@@ -180,12 +178,12 @@ describe("NomoPlayersDropMechanic tests", function () {
   context("for presale start date", () => {
     it("should set presale start date", async function () {
       const timestamp = await getBlockTimestamp();
-      const TWO_DAYS = 60 * 60 * 24 * 2;
-      const unixTimeStampStartDate = timestamp + TWO_DAYS;
+      const TWO_DAYS = ONE_HOUR * 24 * 2;
+      const unixStartDate = timestamp + TWO_DAYS;
 
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
       const presaleStartDate = await nomoPlayersDropMechanicContract.connect(deployer).presaleStartDate();
-      expect(unixTimeStampStartDate).to.equal(presaleStartDate)
+      expect(unixStartDate).to.equal(presaleStartDate)
     });
 
     it("should emit LogPresaleStartDateSet event", async function () {
@@ -199,8 +197,8 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     it("must fail to set presale start date if it's in the past", async function () {
       const timestamp = await getBlockTimestamp();
-      const unixTimeStampStartDate = timestamp - 1;
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate))
+      const unixStartDate = timestamp - 1;
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate))
         .to.be.revertedWith("Presale start date can't be in the past");
     });
   });
@@ -211,11 +209,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("should set presale duration", async function () {
-      const presalePeriod = 60 * 60 * 2; // 2 hours
-
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(presalePeriod);
+      // Set presale duration to two hours
+      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
       const presaleDurationSet = await nomoPlayersDropMechanicContract.connect(deployer).presaleDuration();
-      expect(presalePeriod).to.equal(presaleDurationSet)
+      expect(TWO_HOURS).to.equal(presaleDurationSet)
     });
 
     it("must fail to set presale duration if msg.sender isn't owner", async function () {
@@ -225,7 +222,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     it("must fail to set presale duration if presale duration is zero", async function () {
       await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(0))
-        .to.be.revertedWith("Presale duration must be higher than zero");
+        .to.be.revertedWith("Presale: not a valid duration!");
     });
   });
 
@@ -255,22 +252,21 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail to set whitelisted if whitelisted array does not have any addresses", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([])).to.be.revertedWith("Beneficiers array must include at least one address");
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([])).to.be.revertedWith("Beneficiaries array must include at least one address");
     });
   });
 
   context("for tokens purchasing on presale", () => {
     it("should buy tokens on presale from NomoPlayersDropMechanic contract", async function () {
       const timestamp = await getBlockTimestamp();
-      const ONE_MIN = 60;
-      const unixTimeStampStartDate = timestamp + ONE_MIN;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+      const unixStartDate = timestamp + ONE_MIN;
+      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
 
-      const TWO_HOURS = 60 * 60 * 2;
       await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
 
-      await network.provider.send("evm_increaseTime", [3600]);
+      await network.provider.send("evm_increaseTime", [ONE_HOUR]);
 
+      const isWhitelistedBefore =  await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
       const userFundsBefore = await erc20Mock.balanceOf(userAddress);
       const daoWalletFundsBefore = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
@@ -281,16 +277,18 @@ describe("NomoPlayersDropMechanic tests", function () {
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
 
-      const buyTokensOnSaleTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
-      await buyTokensOnSaleTx.wait();
-
+      await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
+     
+      const isWhitelistedAfter =  await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
       const userTokensAfter = await erc721Mock.balanceOf(userAddress);
       const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
       const userFundsAfter = await erc20Mock.balanceOf(userAddress);
       const daoWalletFundsAfter = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
       const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
-
+      
+      expect(isWhitelistedBefore).to.equal(true);
+      expect(isWhitelistedAfter).to.equal(false);
       expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
       expect(userFundsAfter).to.equal(userFundsBefore.sub(value));
       expect(strategyFundsBefore).to.equal(0);
@@ -304,11 +302,9 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     it("must fail if presale hasn't started", async function () {
       const timestamp = await getBlockTimestamp();
-      const ONE_MIN = 60;
-      const unixTimeStampStartDate = timestamp + ONE_MIN;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+      const unixStartDate = timestamp + ONE_MIN;
+      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
 
-      const TWO_HOURS = 60 * 60 * 2;
       await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
 
       const tokensToBeApproved = 1;
@@ -320,14 +316,12 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     it("must fail if presale has ended", async function () {
       const timestamp = await getBlockTimestamp();
-      const ONE_MIN = 60;
-      const unixTimeStampStartDate = timestamp + ONE_MIN;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+      const unixStartDate = timestamp + ONE_MIN;
+      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
 
-      const TWO_HOURS = 60 * 60 * 2;
       await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
 
-      const OVERTIME = (60 * 60 * 2) + 61;
+      const OVERTIME = TWO_HOURS + 61;
       await network.provider.send("evm_increaseTime", [OVERTIME]);
 
       const tokensToBeApproved = 1;
@@ -339,33 +333,29 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     it("must fail if user is not whitelisted", async function () {
       const timestamp = await getBlockTimestamp();
-      const ONE_MIN = 60;
-      const unixTimeStampStartDate = timestamp + ONE_MIN;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+      const unixStartDate = timestamp + ONE_MIN;
+      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
 
-      const TWO_HOURS = 60 * 60 * 2;
       await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
 
-      await network.provider.send("evm_increaseTime", [3600]);
+      await network.provider.send("evm_increaseTime", [ONE_HOUR]);
 
       const tokensToBeApproved = 1;
       const value = BigNumber.from(tokensToBeApproved).mul(tokenPrice);
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
 
       // Here we use `deployer` as a signer, who is not whitelisted in the presale
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).buyTokensOnPresale()).to.be.revertedWith("Msg.sender is not whitelisted or has already claimed!");
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).buyTokensOnPresale()).to.be.revertedWith("Claiming is forbidden");
     });
 
     it("must fail if user has already claimed", async function () {
       const timestamp = await getBlockTimestamp();
-      const ONE_MIN = 60;
-      const unixTimeStampStartDate = timestamp + ONE_MIN;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+      const unixStartDate = timestamp + ONE_MIN;
+      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
 
-      const TWO_HOURS = 60 * 60 * 2;
       await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
 
-      await network.provider.send("evm_increaseTime", [3600]);
+      await network.provider.send("evm_increaseTime", [ONE_HOUR]);
       // Approve 2 tokens 
       const tokensToBeApproved = 2;
       const value = BigNumber.from(tokensToBeApproved).mul(tokenPrice);
@@ -373,7 +363,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
 
-      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale()).to.be.revertedWith("Msg.sender is not whitelisted or has already claimed!");
+      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale()).to.be.revertedWith("Claiming is forbidden");
     });
   });
 
@@ -395,8 +385,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       const tokensToBeBought = 7;
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-      const buyTokensOnSaleTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought);
-      await buyTokensOnSaleTx.wait();
+      await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought);
 
       const userTokensAfter = await erc721Mock.balanceOf(userAddress);
       const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
@@ -418,20 +407,17 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     it("must fail to buy tokens on sale before the actual sale has started", async function () {
       const timestamp = await getBlockTimestamp();
-      const ONE_MIN = 60;
-      const unixTimeStampStartDate = timestamp + ONE_MIN;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixTimeStampStartDate);
+      const unixStartDate = timestamp + ONE_MIN;
+      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
 
-      const TWO_HOURS = 60 * 60 * 2;
       await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
 
-      const TIME = (60 * 60 * 1);
-      await network.provider.send("evm_increaseTime", [TIME]); // Simulate presale hasn't finished
+      await network.provider.send("evm_increaseTime", [ONE_HOUR]); // Simulate presale hasn't finished
 
       const tokensToBeBought = 7;
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(7)).to.be.revertedWith("Current timestamp is not in the bounds of the sale period");
+      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(7)).to.be.revertedWith("Sale period not started!");
     });
 
     it("must fail to deploy NomoPlayersDropMechanic contract if tokens array is empty", async () => {

@@ -131,7 +131,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function setPresaleDuration(uint256 _presaleDuration) public onlyOwner {
         require(
             _presaleDuration > 0,
-            "Presale duration must be higher than zero"
+            "Presale: not a valid duration!"
         );
         presaleDuration = _presaleDuration;
         emit LogPresaleDurationSet(presaleDuration);
@@ -139,19 +139,19 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
     /**
      * @notice Sets whitelisted.
-     * @param beneficiers address[] representing the user who will be whitelisted
+     * @param beneficiaries address[] representing the user who will be whitelisted
      */
-    function setWhitelisted(address[] memory beneficiers) public onlyOwner {
+    function setWhitelisted(address[] memory beneficiaries) public onlyOwner {
         require(
-            beneficiers.length > 0,
-            "Beneficiers array must include at least one address"
+            beneficiaries.length > 0,
+            "Beneficiaries array must include at least one address"
         );
 
-        for (uint256 i = 0; i < beneficiers.length; i++) {
-            whitelisted[beneficiers[i]] = true;
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            whitelisted[beneficiaries[i]] = true;
         }
 
-        emit LogWhitelistedSet(beneficiers);
+        emit LogWhitelistedSet(beneficiaries);
     }
     
     /**
@@ -230,7 +230,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         );
         require(
             whitelisted[msg.sender],
-            "Msg.sender is not whitelisted or has already claimed!"
+            "Claiming is forbidden"
         );
 
         buyTokens(1);
@@ -243,7 +243,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function buyTokensOnSale(uint256 quantity) public {
         require(
             block.timestamp > (presaleStartDate + presaleDuration),
-            "Current timestamp is not in the bounds of the sale period"
+            "Sale period not started!"
         );
 
         buyTokens(quantity);
