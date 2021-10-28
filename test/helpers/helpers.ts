@@ -20,14 +20,15 @@ export async function getBlockTimestamp() {
 }
 
 export function shuffle(tokens: number[] | string[]) {
-    let copy = [], n = tokens.length, i;
+    let tempArr = [...tokens]
+    let copy = [], n = tempArr.length, i;
 
     while (n) {
-        i = Math.floor(Math.random() * tokens.length);
+        i = Math.floor(Math.random() * tempArr.length);
 
-        if (i in tokens) {
-            copy.push(tokens[i]);
-            delete tokens[i];
+        if (i in tempArr) {
+            copy.push(tempArr[i]);
+            delete tempArr[i];
             n--;
         }
     }

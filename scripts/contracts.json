@@ -1,20 +1,30 @@
 {
-  "network": "rinkeby",
-  "nomoPlayersDropMechanic": "0xfFd902c7c68dFc25bE90FEdF84BEAb8616534DaB",
+  "network": "mumbai",
+  "nomoPlayersDropMechanic": "0x317ba2F16990c59af21f46F8FF1717f5116ab0D3",
   "mintedTokens": [
+    1,
+    2,
     3,
     4,
-    2,
-    6,
-    1,
-    10,
     5,
+    6,
     7,
+    8,
     9,
-    8
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
   ],
-  "erc721Address": "0xB97584664DD26D4aDD36DCA6A77020fCe60CA7FF",
-  "tokensVault": "0xB97584664DD26D4aDD36DCA6A77020fCe60CA7FF",
-  "price": "250000000000000000",
-  "maxQuantity": "20"
+  "erc721Address": "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3",
+  "tokensVault": "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3",
+  "price": "1000000000000000000",
+  "maxQuantity": "10"
 }

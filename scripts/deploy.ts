@@ -5,6 +5,8 @@ import { ContractFactory } from 'ethers';
 import config from './deployConfig/index';
 import dotenv from 'dotenv';
 
+const {coerceUndefined, shuffle} = config;
+
 dotenv.config();
 
 export async function deployNomoPlayersDropMechanic() {
@@ -13,29 +15,25 @@ export async function deployNomoPlayersDropMechanic() {
 
   console.log('Deploying contracts with the account:', deployer.address);
   console.log('Account balance:', (await deployer.getBalance()).toString());
-
-  // Example input data for constructor arguments and setter functions, mandatory for the deploy of the NomoPlayersDropMechanic contract
-  let erc20Address;
-  const price = process.env.TOKEN_PRICE;
-  const maxQuantity = process.env.MAX_QUANTITY;
-  const erc721Address = process.env.ERC721_ADDRESS;
-  const daoWalletAddress = process.env.DAO_WALLET_ADDRESS;
-  const strategyContractAddress = process.env.STRATEGY_CONTRACT_ADDRESS;
-  const tokensVault = process.env.TOKENS_VAULT;
-
-  const mintedTokens = config.MINTED_TOKENS();
   
-  const whitelisted = config.WHITELISTED;
+  // Example input data for constructor arguments and setter functions, mandatory for the deploy of the NomoPlayersDropMechanic contract
+  const erc20Address: string = coerceUndefined(process.env.DAI_ADDRESS);
+  const price = coerceUndefined(process.env.TOKEN_PRICE);
+  const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH)
+  const maxQuantity = coerceUndefined(process.env.MAX_QUANTITY);
+  const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
+  const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
+  const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
+  const tokensVault = coerceUndefined(process.env.TOKENS_VAULT);
 
-  if (hre.network.name === 'mumbai') {
-    erc20Address = process.env.DAI_ADDRESS_MUMBAI;
-  } else if (hre.network.name === 'mainnet') {
-    erc20Address = process.env.DAI_ADDRESS_MATIC_MAINNET;
-  }
-
+  const mintedTokens = config.generateCollection(collectionLength);
+  //! shuffled so we do not know the actual order inside
+  const shuffled = shuffle(mintedTokens)
+  const whitelisted = config.WHITE_LISTED;
+  
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
   const nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
-    mintedTokens,
+    shuffled,
     erc721Address,
     tokensVault,
     price,
@@ -46,15 +44,15 @@ export async function deployNomoPlayersDropMechanic() {
 
   console.log('NomoPlayersDropMechanic contract:', nomoPlayersDropMechanicContract.address);
   
-  if (erc20Address) await nomoPlayersDropMechanicContract.setERC20Address(erc20Address);
-  if (daoWalletAddress) await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
-  if (strategyContractAddress) await nomoPlayersDropMechanicContract.setStrategyContractAddress(strategyContractAddress);
-  if (whitelisted) await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
+  await nomoPlayersDropMechanicContract.setERC20Address(erc20Address);
+  await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
+  await nomoPlayersDropMechanicContract.setStrategyContractAddress(strategyContractAddress);
+  await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
 
   fs.writeFileSync('./scripts/contracts.json', JSON.stringify({
     network: hre.network.name,
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
-    mintedTokens,
+    mintedTokens:[...mintedTokens],
     erc721Address,
     tokensVault,
     price,
