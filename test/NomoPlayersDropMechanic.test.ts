@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
-import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock } from '../typechain';
+import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
 import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
 import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN, ONE_HOUR, TWO_HOURS } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp } from './helpers/helpers';
@@ -256,6 +256,13 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
+  context("for attacker", () => {
+    it("must fail if caller is contract ", async function () {
+      const Attacker_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("Attacker");
+      await expect(Attacker_Factory_Test.connect(deployer).deploy(nomoPlayersDropMechanicAddress)).to.be.revertedWith("Contracts are forbidden to call this method");
+    });
+  })
+
   context("for tokens purchasing on presale", () => {
     it("should buy tokens on presale from NomoPlayersDropMechanic contract", async function () {
       const timestamp = await getBlockTimestamp();
@@ -266,7 +273,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       await network.provider.send("evm_increaseTime", [ONE_HOUR]);
 
-      const isWhitelistedBefore =  await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
+      const isWhitelistedBefore = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
       const userFundsBefore = await erc20Mock.balanceOf(userAddress);
       const daoWalletFundsBefore = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
@@ -278,15 +285,15 @@ describe("NomoPlayersDropMechanic tests", function () {
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
 
       await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
-     
-      const isWhitelistedAfter =  await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
+
+      const isWhitelistedAfter = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
       const userTokensAfter = await erc721Mock.balanceOf(userAddress);
       const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
       const userFundsAfter = await erc20Mock.balanceOf(userAddress);
       const daoWalletFundsAfter = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
       const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
-      
+
       expect(isWhitelistedBefore).to.equal(true);
       expect(isWhitelistedAfter).to.equal(false);
       expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
