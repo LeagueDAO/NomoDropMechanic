@@ -16,6 +16,7 @@ import "./RandomGenerator.sol";
 contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using RandomGenerator for RandomGenerator.Random;
+    using Address for address;
 
     uint256[] private tokens;
     uint256 public tokenPrice;
@@ -59,6 +60,10 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         uint256 _tokenPrice,
         uint256 _maxQuantity
     ) isValidAddress(_erc721Address) isValidAddress(_tokensVault) {
+        require(
+            msg.sender.isContract() && (msg.sender == tx.origin),
+            "Contracts are forbidden to call this method"
+        );
         require(
             tokensArray.length > 0,
             "Tokens array must include at least one item"
@@ -129,10 +134,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * @param _presaleDuration uint256 representing the duration of the presale
      */
     function setPresaleDuration(uint256 _presaleDuration) public onlyOwner {
-        require(
-            _presaleDuration > 0,
-            "Presale: not a valid duration!"
-        );
+        require(_presaleDuration > 0, "Presale: not a valid duration!");
         presaleDuration = _presaleDuration;
         emit LogPresaleDurationSet(presaleDuration);
     }
@@ -153,7 +155,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
         emit LogWhitelistedSet(beneficiaries);
     }
-    
+
     /**
      * @notice Distributes the requested quantity by the user and transfers the funds to DAO wallet address and Strategy contract.
      
@@ -221,10 +223,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
                 (block.timestamp < (presaleStartDate + presaleDuration)),
             "Current timestamp is not in the bounds of the presale period"
         );
-        require(
-            whitelisted[msg.sender],
-            "Claiming is forbidden"
-        );
+        require(whitelisted[msg.sender], "Claiming is forbidden");
 
         buyTokens(1);
         whitelisted[msg.sender] = false;
