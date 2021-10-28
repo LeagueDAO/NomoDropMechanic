@@ -257,7 +257,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   context("for attacker", () => {
-    it("must fail caller is contract ", async function () {
+    it("must fail if caller is contract ", async function () {
       const Attacker_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("Attacker");
       await expect(Attacker_Factory_Test.connect(deployer).deploy(nomoPlayersDropMechanicAddress)).to.be.revertedWith("Contracts are forbidden to call this method");
     });
