@@ -11,10 +11,6 @@ export const networks: NetworksUserConfig = {
     },
     hardhat: {
     },
-    rinkeby: {
-        url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
-        accounts: [`0x${process.env.PRIVATE_KEY}`]
-    },
     // Mumbai Testnet
     mumbai: {
         url: "https://rpc-mumbai.maticvigil.com",
