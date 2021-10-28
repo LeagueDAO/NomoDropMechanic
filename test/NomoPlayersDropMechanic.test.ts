@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
-import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock } from '../typechain';
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
+import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
 import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN, ONE_HOUR, TWO_HOURS } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp, shuffle } from './helpers/helpers';
 
@@ -257,6 +257,13 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
+  context("for attacker", () => {
+    it("must fail if caller is contract ", async function () {
+      const Attacker_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("Attacker");
+      await expect(Attacker_Factory_Test.connect(deployer).deploy(nomoPlayersDropMechanicAddress)).to.be.revertedWith("Invalid caller!");
+    });
+  })
+
   context("for tokens purchasing on presale", () => {
     it("should buy tokens on presale from NomoPlayersDropMechanic contract", async function () {
       const timestamp = await getBlockTimestamp();
@@ -404,6 +411,20 @@ describe("NomoPlayersDropMechanic tests", function () {
       expect(tokenVaultQtyAfter).to.equal(collectibleItems - tokensToBeBought);
       expect(userTokensBefore).to.equal(0);
       expect(userTokensAfter).to.equal(tokensToBeBought);
+    });
+
+    it("should buy all tokens from NomoPlayersDropMechanic contract", async function () {
+      const tokensToBeBought = 25;
+      const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
+      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+
+      for (let index = 0; index < tokensToBeBought; index++) {
+        await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(1);
+      }
+
+      const tokenLeftAfterSale = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
+
+      expect(tokenLeftAfterSale).to.equal(0)
     });
 
     it("must fail to buy tokens on sale before the actual sale has started", async function () {
