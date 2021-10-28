@@ -166,10 +166,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * - the caller must have sufficient ERC20 tokens.
      */
     function buyTokens(uint256 quantity) private nonReentrant {
-        require(
-            !msg.sender.isContract() && msg.sender == tx.origin,
-            "Invalid caller!"
-        );
+        require(msg.sender == tx.origin, "Invalid caller!");
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
