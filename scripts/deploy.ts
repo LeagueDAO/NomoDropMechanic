@@ -29,7 +29,6 @@ export async function deployNomoPlayersDropMechanic() {
 
   if (hre.network.name === 'mumbai') {
     erc20Address = process.env.DAI_ADDRESS_MUMBAI;
-    console.log(erc20Address)
   } else if (hre.network.name === 'mainnet') {
     erc20Address = process.env.DAI_ADDRESS_MATIC_MAINNET;
   }
