@@ -61,10 +61,6 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         uint256 _maxQuantity
     ) isValidAddress(_erc721Address) isValidAddress(_tokensVault) {
         require(
-            msg.sender.isContract() && (msg.sender == tx.origin),
-            "Contracts are forbidden to call this method"
-        );
-        require(
             tokensArray.length > 0,
             "Tokens array must include at least one item"
         );
@@ -170,6 +166,10 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * - the caller must have sufficient ERC20 tokens.
      */
     function buyTokens(uint256 quantity) private nonReentrant {
+        require(
+            msg.sender.isContract() && (msg.sender == tx.origin),
+            "Contracts are forbidden to call this method"
+        );
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
