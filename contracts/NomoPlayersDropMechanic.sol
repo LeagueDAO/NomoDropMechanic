@@ -167,7 +167,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      */
     function buyTokens(uint256 quantity) private nonReentrant {
         require(
-            !msg.sender.isContract() && (msg.sender == tx.origin),
+            !msg.sender.isContract() && msg.sender == tx.origin,
             "Contracts are forbidden to call this method"
         );
         require(
