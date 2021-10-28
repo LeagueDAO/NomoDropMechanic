@@ -1,9 +1,9 @@
 const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock } from '../typechain';
-import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
+import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN, ONE_HOUR, TWO_HOURS } from './helpers/constants';
-import { getTokensFromEventArgs, getBlockTimestamp } from './helpers/helpers';
+import { getTokensFromEventArgs, getBlockTimestamp, shuffle } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
 let user: Signer, userAddress: string;
@@ -70,15 +70,16 @@ describe("NomoPlayersDropMechanic tests", function () {
     const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
 
     const mintedTokens: string[] = getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted");
+    const mintedTokensShuffled = shuffle(mintedTokens);
 
-    expect(mintedTokens.length).not.to.equal(0);
+    expect(mintedTokensShuffled.length).not.to.equal(0);
     expect(addressERC721Mock).not.to.equal(zeroAddress);
     expect(addressStrategyMock).not.to.equal(zeroAddress);
     expect(addressERC20Mock).not.to.equal(zeroAddress);
 
     const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
-      mintedTokens,
+      mintedTokensShuffled,
       addressERC721Mock,
       deployerAddress,
       tokenPrice,
@@ -266,7 +267,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       await network.provider.send("evm_increaseTime", [ONE_HOUR]);
 
-      const isWhitelistedBefore =  await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
+      const isWhitelistedBefore = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
       const userFundsBefore = await erc20Mock.balanceOf(userAddress);
       const daoWalletFundsBefore = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
@@ -278,15 +279,15 @@ describe("NomoPlayersDropMechanic tests", function () {
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
 
       await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
-     
-      const isWhitelistedAfter =  await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
+
+      const isWhitelistedAfter = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
       const userTokensAfter = await erc721Mock.balanceOf(userAddress);
       const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
       const userFundsAfter = await erc20Mock.balanceOf(userAddress);
       const daoWalletFundsAfter = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
       const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
-      
+
       expect(isWhitelistedBefore).to.equal(true);
       expect(isWhitelistedAfter).to.equal(false);
       expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
@@ -439,10 +440,12 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
       const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+      const mintedTokensShuffled = shuffle(mintedTokensDummy);
+
       const fakeTokenPrice = 0;
 
       await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-        mintedTokensDummy,
+        mintedTokensShuffled,
         addressERC721MockTest,
         deployerAddress,
         fakeTokenPrice,
@@ -454,10 +457,12 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
       const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+      const mintedTokensShuffled = shuffle(mintedTokensDummy);
+
       const fakeMaxQuantity = 0;
 
       await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-        mintedTokensDummy,
+        mintedTokensShuffled,
         addressERC721MockTest,
         deployerAddress,
         tokenPrice,
@@ -467,9 +472,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     it("must fail to deploy NomoPlayersDropMechanic contract if ERC721 address is not valid", async () => {
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
       const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+      const mintedTokensShuffled = shuffle(mintedTokensDummy);
 
       await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-        mintedTokensDummy,
+        mintedTokensShuffled,
         zeroAddress,
         deployerAddress,
         tokenPrice,
@@ -528,10 +534,11 @@ describe("NomoPlayersDropMechanic tests", function () {
       const mintCollectionTx = await erc721MockTest.connect(deployer).mintCollection(collectibleItems);
       const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
       const mintedTokens: string[] = getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted");
+      const mintedTokensShuffled = shuffle(mintedTokens);
 
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
       const nomoPlayersDropMechanicTestContract = await NomoPlayersDropMechanic_Factory_Test.deploy(
-        mintedTokens,
+        mintedTokensShuffled,
         addressERC721MockTest,
         deployerAddress,
         tokenPrice,
