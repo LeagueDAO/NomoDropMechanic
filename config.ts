@@ -22,7 +22,7 @@ export const networks: NetworksUserConfig = {
     },
     // Matic Mainnet
     mainnet: {
-        url: "https://rpc-mainnet.matic.network",
+        url: "https://rpc-mainnet.maticvigil.com/",
         chainId: 137,
         accounts: [`0x${process.env.PRIVATE_KEY}`],
         gas: 'auto',

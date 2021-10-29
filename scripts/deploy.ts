@@ -25,6 +25,8 @@ export async function deployNomoPlayersDropMechanic() {
   const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
   const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
   const tokensVault = coerceUndefined(process.env.TOKENS_VAULT);
+  const presaleStartDate = coerceUndefined(process.env.PRESALE_START_DATE);
+  const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
 
   const mintedTokens = config.generateCollection(collectionLength);
   //! shuffled so we do not know the actual order inside
@@ -47,6 +49,8 @@ export async function deployNomoPlayersDropMechanic() {
   await nomoPlayersDropMechanicContract.setERC20Address(erc20Address);
   await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
   await nomoPlayersDropMechanicContract.setStrategyContractAddress(strategyContractAddress);
+  await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
+  await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
   await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
 
   fs.writeFileSync('./contracts.json', JSON.stringify({
