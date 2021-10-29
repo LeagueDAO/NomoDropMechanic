@@ -49,7 +49,7 @@ export async function deployNomoPlayersDropMechanic() {
   await nomoPlayersDropMechanicContract.setStrategyContractAddress(strategyContractAddress);
   await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
 
-  fs.writeFileSync('./scripts/contracts.json', JSON.stringify({
+  fs.writeFileSync('./contracts.json', JSON.stringify({
     network: hre.network.name,
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
     mintedTokens:[...shuffled],

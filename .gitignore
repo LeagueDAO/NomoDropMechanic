@@ -19,4 +19,4 @@ coverage.json
 typechain/
 
 # Deploy settings
-scripts/contracts.json
+contracts.json

@@ -3,7 +3,7 @@ import fs from 'fs';
 
 export async function verifyNomoPlayersDropMechanic(): Promise<void> {
     const contracts = JSON.parse(
-        fs.readFileSync(`./scripts/contracts.json`, 'utf-8')
+        fs.readFileSync(`./contracts.json`, 'utf-8')
     );
 
     if (contracts.network != hre.network.name) {
