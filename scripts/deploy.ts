@@ -52,7 +52,7 @@ export async function deployNomoPlayersDropMechanic() {
   fs.writeFileSync('./scripts/contracts.json', JSON.stringify({
     network: hre.network.name,
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
-    mintedTokens:[...mintedTokens],
+    mintedTokens:[...shuffled],
     erc721Address,
     tokensVault,
     price,

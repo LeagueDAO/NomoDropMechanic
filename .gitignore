@@ -17,3 +17,6 @@ coverage.json
 
 # IDE settings
 typechain/
+
+# Deploy settings
+scripts/contracts.json
