@@ -79,7 +79,7 @@ NomoPlayersDropMechanic.sol
     - tokenPrice: uint256
     - maxQuantity: uint256
 
-The default network this will be deployed on is `Mumbai Testnet`. Once the below command is run, the contract address will be stored in `./scripts/contracts.json`
+The default network this will be deployed on is `Mumbai Testnet`. Once the below command is run, the contract address will be stored in `./contracts.json`
 
 ```javascript
 npm run contracts:migrate:dev
