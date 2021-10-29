@@ -7,13 +7,13 @@
 * fill in your `.env` file as per the example provided in `env.example`
 
 ## Intro
-This is a ERC721 compatible contract. It represents a contract, deployed on Polygon(MATIC) which accepts ERC20 tokens as a payment method and will take care for transferring ERC721 tokens to the `msg.sender`. NomoPlayersDropMechanic transfers 20% of the funds, in the form of ERC20 tokens, sent to DAO wallet address and 80% to Strategy contract. NomoPlayersDropMechanic contract possesses presale functionality, which gives the right to whitelisted users to purchase token in particular presale period of time, before the actual sale has started. The tokens array of ids passed into the constructor function in NomoPlayersDropMechanic contract, consists of `n` number of tokens, which are shuffled before the contract is deployed. The order of all token ids in the tokens array is intentionally hidden, in order the relation between `index` and `id` to be kept unclear.
+This is a ERC721 compatible contract. It represents a contract, deployed on Polygon(MATIC) which accepts ERC20 tokens as a payment method and will take care for transferring ERC721 tokens to the `msg.sender`. NomoPlayersDropMechanic transfers 20% of the funds, in the form of ERC20 tokens, sent to DAO wallet address and 80% to Strategy contract. NomoPlayersDropMechanic contract possesses presale functionality, which gives the right to whitelisted users to purchase token in particular presale period of time, before the actual sale has started. The tokens array of ids passed into the constructor function in NomoPlayersDropMechanic contract, consists of `n` number of tokens, which are shuffled before the contract is deployed. The order of all token ids in the tokens array is intentionally hidden, in order the relation between `index` and `id` to be kept unclear in order to lower the change of malicious attack as much as possible.
 
 In order the contract to be deployed properly, the contract will require:
 * an array of the token id's, shuffled before the contract is deployed.
 * erc721Address - address of the associated ERC721 contract instance.
 * tokens vault - As this contract is not meant to be an owner at any given time, it'll need the original owner which the NomoPlayersDropMechanic contract will transfer the tokens from.
-* token price - will be used in order to validate whether the `msg.sender` has sent the proper amount later on.
+* token price - token price is intended to be paid from the user, in order to "buy" an NFT. The validation is something in top, but that's not the general purpose of the tokenPrice.
 * maximum quantity - will be used for the maximum quantity of tokens which is possible to be bought per transaction.
 
 In order the contract functions to operate, the contract will require:
@@ -21,10 +21,12 @@ In order the contract functions to operate, the contract will require:
 * `Strategy` contract address to be set in `setStrategyContractAddress` - address where 80% of the funds are going be to sent to.
 * DAO wallet address to be set in `setDaoWalletAddress` - address where 20% of the funds are going be to sent to.
 
+For more details refer to the white paper [white paper](https://medium.com/leaguedao/leaguedao-white-paper-a3dbf82050f7).
+
 In order the contract presale functionality to operate properly, the contract will require:
-* presaleStartDate to be set in `setPresaleStartDate` - uint256 representing the duration of the presale.
+* presaleStartDate to be set in `setPresaleStartDate` - uint256 representing the start date of the presale period.
 * presaleDuration to be set in `setPresaleDuration` - uint256 representing the duration of the presale.
-* whitelisted addresses to be set in `setWhitelisted` - address[] representing the users who will be whitelisted.
+* whitelisted addresses to be set in `setWhitelisted` - address[] representing the users who will have the chance to redeem 1 token at most during the presale period.
 
 ## Install Dependencies
 It's as simple as running 
@@ -84,7 +86,7 @@ npm run contracts:migrate:dev
 ```
 
 ## Verify
-The below command will take the contracts from `./scripts/contracts.json` and will try to verify them on the default network.
+The below command will take the contracts from `./contracts.json` and will try to verify them on the default network.
 ```javascript
 npm run contracts:verify:dev
 ``` 
