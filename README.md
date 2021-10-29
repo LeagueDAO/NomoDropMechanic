@@ -7,10 +7,10 @@
 * fill in your `.env` file as per the example provided in `env.example`
 
 ## Intro
-This is a ERC721 compatible contract. It represents a contract, deployed on Polygon(MATIC) which accepts ERC20 tokens as a payment method and will take care for transferring ERC721 tokens to the `msg.sender`. NomoPlayersDropMechanic transfers 20% of the funds, in the form of ERC20 tokens, sent to DAO wallet address and 80% to Strategy contract. NomoPlayersDropMechanic contract possesses presale functionality, which gives the right to whitelisted users to purchase token in particular presale period of time, before the actual sale has started.
+This is a ERC721 compatible contract. It represents a contract, deployed on Polygon(MATIC) which accepts ERC20 tokens as a payment method and will take care for transferring ERC721 tokens to the `msg.sender`. NomoPlayersDropMechanic transfers 20% of the funds, in the form of ERC20 tokens, sent to DAO wallet address and 80% to Strategy contract. NomoPlayersDropMechanic contract possesses presale functionality, which gives the right to whitelisted users to purchase token in particular presale period of time, before the actual sale has started. The tokens array of ids passed into the constructor function in NomoPlayersDropMechanic contract, consists of `n` number of tokens, which are shuffled before the contract is deployed. The order of all token ids in the tokens array is intentionally hidden, in order the relation between `index` and `id` to be kept unclear.
 
 In order the contract to be deployed properly, the contract will require:
-* an array of the token id's.
+* an array of the token id's, shuffled before the contract is deployed.
 * erc721Address - address of the associated ERC721 contract instance.
 * tokens vault - As this contract is not meant to be an owner at any given time, it'll need the original owner which the NomoPlayersDropMechanic contract will transfer the tokens from.
 * token price - will be used in order to validate whether the `msg.sender` has sent the proper amount later on.
