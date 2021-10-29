@@ -3,7 +3,7 @@ import fs from 'fs';
 
 export async function verifyNomoPlayersDropMechanic(): Promise<void> {
     const contracts = JSON.parse(
-        fs.readFileSync(`./scripts/contracts.json`, 'utf-8')
+        fs.readFileSync(`./contracts.json`, 'utf-8')
     );
 
     if (contracts.network != hre.network.name) {
@@ -18,16 +18,14 @@ export async function verifyNomoPlayersDropMechanic(): Promise<void> {
             address: contracts.nomoPlayersDropMechanic,
             constructorArguments: [
                 contracts.mintedTokens,
+                contracts.erc721Address,
+                contracts.tokensVault,
                 contracts.price,
                 contracts.maxQuantity,
-                contracts.erc721Address,
-                contracts.daoWalletAddress,
-                contracts.strategyContractAddress,
-                contracts.tokensVault
             ],
         });
     } catch (error: any) {
-       logError('NomoPlayersDropMechanic', error.message);
+        logError('NomoPlayersDropMechanic', error.message);
     }
 
 }

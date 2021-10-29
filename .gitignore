@@ -12,6 +12,11 @@ coverage.json
 
 # Local settings
 .env
+.env.dev
+.env.prod
 
 # IDE settings
 typechain/
+
+# Deploy settings
+contracts.json

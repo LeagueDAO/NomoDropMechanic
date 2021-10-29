@@ -2,6 +2,12 @@ import hre from "hardhat";
 import fs from 'fs';
 import { NomoPlayersDropMechanic } from '../typechain';
 import { ContractFactory } from 'ethers';
+import config from './deployConfig/index';
+import dotenv from 'dotenv';
+
+const {coerceUndefined, shuffle} = config;
+
+dotenv.config();
 
 export async function deployNomoPlayersDropMechanic() {
   await hre.run('compile');
@@ -9,47 +15,56 @@ export async function deployNomoPlayersDropMechanic() {
 
   console.log('Deploying contracts with the account:', deployer.address);
   console.log('Account balance:', (await deployer.getBalance()).toString());
+  
+  // Example input data for constructor arguments and setter functions, mandatory for the deploy of the NomoPlayersDropMechanic contract
+  const erc20Address: string = coerceUndefined(process.env.DAI_ADDRESS);
+  const price = coerceUndefined(process.env.TOKEN_PRICE);
+  const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH)
+  const maxQuantity = coerceUndefined(process.env.MAX_QUANTITY);
+  const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
+  const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
+  const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
+  const tokensVault = coerceUndefined(process.env.TOKENS_VAULT);
+  const presaleStartDate = coerceUndefined(process.env.PRESALE_START_DATE);
+  const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
 
-  // Example input data for constructor arguments, mandatory for the deploy
-  // of the NomoPlayersDropMechanic contract
-  const price: string = "250000000000000000";
-  const maxQuantity: number = 20;
-  const erc721Address: string = "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3";
-  const daoWalletAddress: string = "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3";
-  const strategyContractAddress: string = "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3";
-  const tokensVault: string = "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3";
-  const mintedTokens: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
-
+  const mintedTokens = config.generateCollection(collectionLength);
+  //! shuffled so we do not know the actual order inside
+  const shuffled = shuffle(mintedTokens)
+  const whitelisted = config.WHITE_LISTED;
+  
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
   const nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
-    mintedTokens,
-    price,
-    maxQuantity,
+    shuffled,
     erc721Address,
-    daoWalletAddress,
-    strategyContractAddress,
-    tokensVault) as NomoPlayersDropMechanic;
+    tokensVault,
+    price,
+    maxQuantity) as NomoPlayersDropMechanic;
 
   console.log('Deploying NomoPlayersDropMechanic, please wait...');
-
   await nomoPlayersDropMechanicContract.deployed();
 
   console.log('NomoPlayersDropMechanic contract:', nomoPlayersDropMechanicContract.address);
+  
+  await nomoPlayersDropMechanicContract.setERC20Address(erc20Address);
+  await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
+  await nomoPlayersDropMechanicContract.setStrategyContractAddress(strategyContractAddress);
+  await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
+  await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
+  await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
 
-  fs.writeFileSync('./scripts/contracts.json', JSON.stringify({
+  fs.writeFileSync('./contracts.json', JSON.stringify({
     network: hre.network.name,
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
-    mintedTokens,
-    price,
-    maxQuantity,
+    mintedTokens:[...shuffled],
     erc721Address,
-    daoWalletAddress,
-    strategyContractAddress,
-    tokensVault
+    tokensVault,
+    price,
+    maxQuantity
   }, null, 2));
 
   // After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
-  // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: deployer.address });
+  // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
 
   console.log('Done!');
 }
