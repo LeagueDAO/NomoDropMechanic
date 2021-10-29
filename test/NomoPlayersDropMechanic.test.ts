@@ -1,9 +1,9 @@
 const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
+import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
-import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
 import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN, ONE_HOUR, TWO_HOURS } from './helpers/constants';
-import { getTokensFromEventArgs, getBlockTimestamp } from './helpers/helpers';
+import { getTokensFromEventArgs, getBlockTimestamp, shuffle } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
 let user: Signer, userAddress: string;
@@ -70,15 +70,16 @@ describe("NomoPlayersDropMechanic tests", function () {
     const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
 
     const mintedTokens: string[] = getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted");
+    const mintedTokensShuffled = shuffle(mintedTokens);
 
-    expect(mintedTokens.length).not.to.equal(0);
+    expect(mintedTokensShuffled.length).not.to.equal(0);
     expect(addressERC721Mock).not.to.equal(zeroAddress);
     expect(addressStrategyMock).not.to.equal(zeroAddress);
     expect(addressERC20Mock).not.to.equal(zeroAddress);
 
     const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
     nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
-      mintedTokens,
+      mintedTokensShuffled,
       addressERC721Mock,
       deployerAddress,
       tokenPrice,
@@ -259,7 +260,7 @@ describe("NomoPlayersDropMechanic tests", function () {
   context("for attacker", () => {
     it("must fail if caller is contract ", async function () {
       const Attacker_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("Attacker");
-      await expect(Attacker_Factory_Test.connect(deployer).deploy(nomoPlayersDropMechanicAddress)).to.be.revertedWith("Contracts are forbidden to call this method");
+      await expect(Attacker_Factory_Test.connect(deployer).deploy(nomoPlayersDropMechanicAddress)).to.be.revertedWith("Invalid caller!");
     });
   })
 
@@ -412,6 +413,20 @@ describe("NomoPlayersDropMechanic tests", function () {
       expect(userTokensAfter).to.equal(tokensToBeBought);
     });
 
+    it("should buy all tokens from NomoPlayersDropMechanic contract", async function () {
+      const tokensToBeBought = 25;
+      const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
+      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+
+      for (let index = 0; index < tokensToBeBought; index++) {
+        await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(1);
+      }
+
+      const tokenLeftAfterSale = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
+
+      expect(tokenLeftAfterSale).to.equal(0)
+    });
+
     it("must fail to buy tokens on sale before the actual sale has started", async function () {
       const timestamp = await getBlockTimestamp();
       const unixStartDate = timestamp + ONE_MIN;
@@ -446,10 +461,12 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
       const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+      const mintedTokensShuffled = shuffle(mintedTokensDummy);
+
       const fakeTokenPrice = 0;
 
       await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-        mintedTokensDummy,
+        mintedTokensShuffled,
         addressERC721MockTest,
         deployerAddress,
         fakeTokenPrice,
@@ -461,10 +478,12 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
       const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+      const mintedTokensShuffled = shuffle(mintedTokensDummy);
+
       const fakeMaxQuantity = 0;
 
       await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-        mintedTokensDummy,
+        mintedTokensShuffled,
         addressERC721MockTest,
         deployerAddress,
         tokenPrice,
@@ -474,9 +493,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     it("must fail to deploy NomoPlayersDropMechanic contract if ERC721 address is not valid", async () => {
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
       const mintedTokensDummy: number[] = Array.from({ length: 100 }, (_, i) => i + 1);
+      const mintedTokensShuffled = shuffle(mintedTokensDummy);
 
       await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
-        mintedTokensDummy,
+        mintedTokensShuffled,
         zeroAddress,
         deployerAddress,
         tokenPrice,
@@ -535,10 +555,11 @@ describe("NomoPlayersDropMechanic tests", function () {
       const mintCollectionTx = await erc721MockTest.connect(deployer).mintCollection(collectibleItems);
       const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
       const mintedTokens: string[] = getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted");
+      const mintedTokensShuffled = shuffle(mintedTokens);
 
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
       const nomoPlayersDropMechanicTestContract = await NomoPlayersDropMechanic_Factory_Test.deploy(
-        mintedTokens,
+        mintedTokensShuffled,
         addressERC721MockTest,
         deployerAddress,
         tokenPrice,

@@ -18,3 +18,20 @@ export async function getBlockTimestamp() {
     const block = await ethers.provider.getBlock(blockNumber)
     return block.timestamp;
 }
+
+export function shuffle(tokens: number[] | string[]) {
+    let tempArr = [...tokens]
+    let copy = [], n = tempArr.length, i;
+
+    while (n) {
+        i = Math.floor(Math.random() * tempArr.length);
+
+        if (i in tempArr) {
+            copy.push(tempArr[i]);
+            delete tempArr[i];
+            n--;
+        }
+    }
+
+    return copy;
+}
