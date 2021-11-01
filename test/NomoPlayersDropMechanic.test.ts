@@ -144,7 +144,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       expect(tokenBalanceBefore).to.equal(tokensToBeBought);
       expect(tokenBalanceAfter).to.equal(0);
-    }).timeout(25000);
+    }).timeout(30000);
 
     it("must fail to set tokens if token has been already added", async function () {
       const collection: number[] = [1];
@@ -518,7 +518,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value2);
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought2))
         .to.be.revertedWith("Insufficient available quantity");
-    }).timeout(25000);
+    }).timeout(30000);
 
     it("must fail if requested quantity exceeds the limit", async function () {
       const tokensToBeBought = maxQuantity + 1;
