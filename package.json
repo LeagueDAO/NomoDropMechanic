@@ -5,10 +5,13 @@
   "main": "hardhat.config.js",
   "scripts": {
     "test": "env-cmd --silent -f .env.dev npx hardhat test",
+    "contracts:compile": "env-cmd --silent -f .env.dev npx hardhat compile --force",
     "contracts:migrate:dev": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network mumbai",
     "contracts:verify:dev": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network mumbai",
     "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nomoPlayersDropMechanic --network mainnet",
-    "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nomoPlayersDropMechanic --network mainnet"
+    "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nomoPlayersDropMechanic --network mainnet",
+    "contracts:migrate:dev:eth": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network rinkeby",
+    "contracts:verify:dev:eth": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network rinkeby"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

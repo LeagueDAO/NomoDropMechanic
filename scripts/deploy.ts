@@ -53,6 +53,9 @@ export async function deployNomoPlayersDropMechanic() {
   await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
   await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
 
+  // After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
+  // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
+
   fs.writeFileSync('./contracts.json', JSON.stringify({
     network: hre.network.name,
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
@@ -63,8 +66,6 @@ export async function deployNomoPlayersDropMechanic() {
     maxQuantity
   }, null, 2));
 
-  // After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
-  // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
 
   console.log('Done!');
 }
