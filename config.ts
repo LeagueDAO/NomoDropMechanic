@@ -29,6 +29,14 @@ export const networks: NetworksUserConfig = {
         gasPrice: 'auto',
         gasMultiplier: 1.5,
     },
+    rinkeby: {
+        url: `https://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_ID}/eth/rinkeby`,
+        accounts: [`0x${process.env.PRIVATE_KEY}`],
+    },
+    ropsten: {
+        url: `https://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_ID}/eth/rinkeby`,
+        accounts: [`0x${process.env.PRIVATE_KEY}`],
+    }
 };
 
 // Use to verify contracts on Etherscan

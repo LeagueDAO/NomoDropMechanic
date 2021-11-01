@@ -29,6 +29,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     uint256 public presaleStartDate;
     uint256 public presaleDuration;
     mapping(address => bool) public whitelisted;
+    mapping(uint256 => bool) public addedTokens;
 
     RandomGenerator.Random internal randomGenerator;
 
@@ -39,6 +40,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     event LogPresaleStartDateSet(uint256 _presaleStartDate);
     event LogPresaleDurationSet(uint256 _presaleDuration);
     event LogWhitelistedSet(address[] _whitelisted);
+    event LogTokensAdded(uint256 length);
 
     modifier isValidAddress(address addr) {
         require(addr != address(0), "Not a valid address!");
@@ -47,30 +49,44 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
     /**
      * @notice Construct and initialize the contract.
-     * @param  tokensArray array of all tokenIds minted in ERC721 contract instance
      * @param _erc721Address address of the associated ERC721 contract instance
      * @param _tokensVault address of the wallet used to store tokensArray
      * @param _tokenPrice to be used for the price
      * @param _maxQuantity to be used for the maximum quantity
      */
     constructor(
-        uint256[] memory tokensArray,
         address _erc721Address,
         address _tokensVault,
         uint256 _tokenPrice,
         uint256 _maxQuantity
     ) isValidAddress(_erc721Address) isValidAddress(_tokensVault) {
-        require(
-            tokensArray.length > 0,
-            "Tokens array must include at least one item"
-        );
         require(_tokenPrice > 0, "Token price must be higher than zero");
         require(_maxQuantity > 0, "Maximum quantity must be higher than zero");
-        tokens = tokensArray;
         erc721Address = _erc721Address;
         tokensVault = _tokensVault;
         tokenPrice = _tokenPrice;
         maxQuantity = _maxQuantity;
+    }
+
+    function addTokensToCollection(uint256[] memory tokensArray)
+        external
+        onlyOwner
+    {
+        require(
+            tokensArray.length > 0,
+            "Tokens array must include at least one item"
+        );
+
+        for (uint256 i = 0; i < tokensArray.length; i++) {
+            require(
+                !addedTokens[tokensArray[i]],
+                "Token has been already added"
+            );
+            addedTokens[tokensArray[i]] = true;
+            tokens.push(tokensArray[i]);
+        }
+
+        emit LogTokensAdded(tokensArray.length);
     }
 
     /**

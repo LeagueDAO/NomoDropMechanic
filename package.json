@@ -4,7 +4,12 @@
   "description": "Repo for ERC721 distribution mechanism",
   "main": "hardhat.config.js",
   "scripts": {
+    "coverage": "env-cmd --silent -f .env.dev npx hardhat coverage",
     "test": "env-cmd --silent -f .env.dev npx hardhat test",
+    "contracts:migrate:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network rinkeby",
+    "contracts:verify:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network rinkeby",
+    "contracts:migrate:dev:ropsten": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network ropsten",
+    "contracts:verify:dev:ropsten": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network ropsten",
     "contracts:migrate:dev": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network mumbai",
     "contracts:verify:dev": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network mumbai",
     "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nomoPlayersDropMechanic --network mainnet",
