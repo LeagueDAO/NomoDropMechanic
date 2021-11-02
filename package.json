@@ -6,6 +6,7 @@
   "scripts": {
     "coverage": "env-cmd --silent -f .env.dev npx hardhat coverage",
     "test": "env-cmd --silent -f .env.dev npx hardhat test",
+    "contracts:compile": "env-cmd --silent -f env.dev npx hardhat compile",
     "contracts:migrate:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network rinkeby",
     "contracts:verify:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network rinkeby",
     "contracts:migrate:dev:ropsten": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network ropsten",

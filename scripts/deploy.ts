@@ -1,9 +1,8 @@
 import hre from "hardhat";
 import fs from 'fs';
-import { NomoPlayersDropMechanic, ERC721Mock } from '../typechain';
-import { ContractFactory, ContractReceipt } from 'ethers';
+import { NomoPlayersDropMechanic } from '../typechain';
+import { ContractFactory } from 'ethers';
 import config from './deployConfig/index';
-import { getTokensFromEventArgs } from '../test/helpers/helpers';
 import dotenv from 'dotenv';
 
 const { coerceUndefined, shuffle } = config;
@@ -22,29 +21,17 @@ export async function deployNomoPlayersDropMechanic() {
   const price = coerceUndefined(process.env.TOKEN_PRICE);
   const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH)
   const maxQuantity = coerceUndefined(process.env.MAX_QUANTITY);
-  // const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
+  const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
   const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
   const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
   const tokensVault = coerceUndefined(process.env.TOKENS_VAULT);
-  // const presaleStartDate = coerceUndefined(process.env.PRESALE_START_DATE);
-  // const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
-  // const whitelisted = config.WHITE_LISTED;
+  const presaleStartDate = coerceUndefined(process.env.PRESALE_START_DATE);
+  const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
+  const whitelisted = config.WHITE_LISTED;
 
-  const ERC721Mock_Factory: ContractFactory = await hre.ethers.getContractFactory("ERC721Mock");
-  const erc721Mock = await ERC721Mock_Factory.connect(deployer).deploy() as ERC721Mock;
-  await erc721Mock.deployed();
-  const erc721Address = erc721Mock.address;
-
-  let mintedTokens: string[] = [];
-
-  for (let i = 0; i < collectionLength; i += 40) {
-    const mintCollectionTx = await erc721Mock.connect(deployer).mintCollection(40);
-    const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
-    mintedTokens = [...mintedTokens, ...getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
-  }
+  const mintedTokens = config.generateCollection(collectionLength);
   //! shuffled so we do not know the actual order inside
-  let mintedTokensShuffled = shuffle(mintedTokens);
-  
+  const shuffled = shuffle(mintedTokens)
 
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
   const nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
@@ -62,13 +49,12 @@ export async function deployNomoPlayersDropMechanic() {
   await nomoPlayersDropMechanicContract.setERC20Address(erc20Address);
   await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
   await nomoPlayersDropMechanicContract.setStrategyContractAddress(strategyContractAddress);
+  await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
+  await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
+  await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
 
-  // await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
-  // await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
-  // await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
-
-  for (let i = 0; i < mintedTokensShuffled.length; i += 100) {
-    const slice = mintedTokensShuffled.slice(i, i + 100);
+  for (let i = 0; i < shuffled.length; i += 100) {
+    const slice = shuffled.slice(i, i + 100);
     await nomoPlayersDropMechanicContract.addTokensToCollection(slice, { gasLimit: "8000000" });
   }
 
@@ -78,7 +64,7 @@ export async function deployNomoPlayersDropMechanic() {
   fs.writeFileSync('./contracts.json', JSON.stringify({
     network: hre.network.name,
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
-    mintedTokens: [...mintedTokensShuffled],
+    mintedTokens: [...shuffled],
     erc721Address,
     tokensVault,
     price,

@@ -2,7 +2,7 @@ const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
-import { tokenPrice, collectibleItems, qtyToMint, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS } from './helpers/constants';
+import { tokenPrice, collectibleItems, qtyToMint, maxQuantity, testAddress, testAddress2, zeroAddress, THIRTY_SECONDS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp, shuffle } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
@@ -144,7 +144,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       expect(tokenBalanceBefore).to.equal(tokensToBeBought);
       expect(tokenBalanceAfter).to.equal(0);
-    }).timeout(30000);
+    }).timeout(THIRTY_SECONDS);
 
     it("must fail to set tokens if token has been already added", async function () {
       const collection: number[] = [1];
@@ -518,7 +518,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value2);
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought2))
         .to.be.revertedWith("Insufficient available quantity");
-    }).timeout(30000);
+    }).timeout(THIRTY_SECONDS);
 
     it("must fail if requested quantity exceeds the limit", async function () {
       const tokensToBeBought = maxQuantity + 1;
