@@ -16,7 +16,7 @@ export async function deployNomoPlayersDropMechanic() {
   console.log('Deploying contracts with the account:', deployer.address);
   console.log('Account balance:', (await deployer.getBalance()).toString());
 
-  const erc20Address: string = coerceUndefined(process.env.DAI_ADDRESS);
+  const erc20Address = coerceUndefined(process.env.DAI_ADDRESS);
   const price = coerceUndefined(process.env.TOKEN_PRICE);
   const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH)
   const maxQuantity = coerceUndefined(process.env.MAX_QUANTITY);
