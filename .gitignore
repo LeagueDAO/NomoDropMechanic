@@ -10,10 +10,11 @@ abi
 coverage
 coverage.json
 
-# Local settings
-.env
-.env.dev
-.env.prod
+# Env settings
+.env*
+
+#Local settings
+local/
 
 # IDE settings
 typechain/
