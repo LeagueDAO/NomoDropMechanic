@@ -17,7 +17,6 @@ export async function verifyNomoPlayersDropMechanic(): Promise<void> {
         await hre.run('verify:verify', {
             address: contracts.nomoPlayersDropMechanic,
             constructorArguments: [
-                contracts.mintedTokens,
                 contracts.erc721Address,
                 contracts.tokensVault,
                 contracts.price,
