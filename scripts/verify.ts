@@ -6,8 +6,6 @@ export async function verifyNomoPlayersDropMechanic(): Promise<void> {
         fs.readFileSync(`./contracts.json`, 'utf-8')
     );
 
-    console.log(contracts.nomoPlayersDropMechanic);
-    
     if (contracts.network != hre.network.name) {
         throw new Error(
             'Contracts are not deployed on the same network, that you are trying to verify!'

@@ -26,6 +26,12 @@ task("verify-nomoPlayersDropMechanic", "Verify already deployed contract")
 const cfg: HardhatUserConfig = {
     solidity: {
         version: '0.8.3',
+        settings: {
+			optimizer: {
+				enabled: true,
+				runs: 10
+			}
+		}
     },
     defaultNetwork: 'hardhat',
     networks: config.networks,
