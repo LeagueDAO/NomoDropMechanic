@@ -84,7 +84,7 @@ export async function deployNomoPlayersDropMechanic() {
 
   fs.writeFileSync('./contracts.json', JSON.stringify({
     network: hre.network.name,
-    nomoPlayersDropMechanic: '0xtest',
+    nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
     erc721Address,
     erc20Address,
     tokensVault,
