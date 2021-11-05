@@ -84,12 +84,20 @@ export async function deployNomoPlayersDropMechanic() {
 
   fs.writeFileSync('./contracts.json', JSON.stringify({
     network: hre.network.name,
-    nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
-    mintedTokens: [...shuffled],
+    nomoPlayersDropMechanic: '0xtest',
     erc721Address,
+    erc20Address,
     tokensVault,
+    strategyContractAddress,
+    daoWalletAddress,
     price,
-    maxQuantity
+    maxQuantity,
+    collectionLength,
+    presaleStartDate,
+    presaleDuration,
+    mintedTokens: [...shuffled],
+    whitelisted,
+
   }, null, 2));
 
   console.log('Done!');
