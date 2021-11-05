@@ -30,7 +30,7 @@ export async function deployNomoPlayersDropMechanic() {
   const whitelisted = config.WHITE_LISTED;
 
   const mintedTokens = config.generateCollection(collectionLength);
-  //! shuffled so we do not know the actual order inside
+  // //! shuffled so we do not know the actual order inside
   const shuffled = shuffle(mintedTokens)
 
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
@@ -70,13 +70,22 @@ export async function deployNomoPlayersDropMechanic() {
   await setWhitelistedTx.wait()
   console.log(`White listed addresses have been set!`);
 
-  const tokensPerTx = 100;
-  let txCounter = 0
+  let tokensPerTx = 100;
+  const leftovers = collectionLength % tokensPerTx;
+  const loops = (collectionLength - (collectionLength % tokensPerTx)) / tokensPerTx + 1;
+
+  let txCounter = 0;
+
   for (let i = 0; i < shuffled.length; i += tokensPerTx) {
+    txCounter++;
+    if (txCounter == loops) { tokensPerTx = leftovers; }
+
     const slice = shuffled.slice(i, i + tokensPerTx);
+
     const addTokensTx = await nomoPlayersDropMechanicContract.addTokensToCollection(slice, { gasLimit: GAS_LIMIT });
+    
     await addTokensTx.wait();
-    console.log(`Add tokens tx: ${++txCounter} has been executed successfully`);
+    console.log(`Add tokens tx: ${txCounter} has been executed successfully`);
   }
 
   //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
