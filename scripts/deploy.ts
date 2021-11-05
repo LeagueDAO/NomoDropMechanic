@@ -97,7 +97,6 @@ export async function deployNomoPlayersDropMechanic() {
     presaleDuration,
     mintedTokens: [...shuffled],
     whitelisted,
-
   }, null, 2));
 
   console.log('Done!');
