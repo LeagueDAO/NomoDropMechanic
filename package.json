@@ -11,8 +11,8 @@
     "contracts:verify:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network rinkeby",
     "contracts:migrate:dev:ropsten": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network ropsten",
     "contracts:verify:dev:ropsten": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network ropsten",
-    "contracts:migrate:dev": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network mumbai",
-    "contracts:verify:dev": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network mumbai",
+    "contracts:migrate:mumbai": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network mumbai",
+    "contracts:verify:mumbai": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network mumbai",
     "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nomoPlayersDropMechanic --network mainnet",
     "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nomoPlayersDropMechanic --network mainnet"
   },
