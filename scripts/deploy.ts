@@ -30,7 +30,7 @@ export async function deployNomoPlayersDropMechanic() {
   const whitelisted = config.WHITE_LISTED;
 
   const mintedTokens = config.generateCollection(collectionLength);
-  // //! shuffled so we do not know the actual order inside
+  //! shuffled so we do not know the actual order inside
   const shuffled = shuffle(mintedTokens)
 
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");

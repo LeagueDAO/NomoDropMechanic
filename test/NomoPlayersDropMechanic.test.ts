@@ -2,7 +2,7 @@ const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
-import { tokenPrice, collectibleItems, qtyToMint, maxQuantity, testAddress, testAddress2, zeroAddress, THIRTY_SECONDS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS } from './helpers/constants';
+import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, THIRTY_SECONDS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp, shuffle } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
