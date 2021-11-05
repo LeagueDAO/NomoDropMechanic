@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./RandomGenerator.sol";
+import "./interfaces/INomoVault.sol";
 
 /**
  * @title Contract for distributing ERC721 tokens.
@@ -170,7 +171,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
     /**
      * @notice Distributes the requested quantity by the user and transfers the funds to DAO wallet address and Strategy contract.
-     
+
      * @dev Buyer sends particular message value and requests quantity.
      * NomoPlayersDropMechanic distributes the tokens to the buyer's address if the requirements are met.
      * NomoPlayersDropMechanic is approved to have disposal of the collection minted on the tokensVault's address.
@@ -190,8 +191,9 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         require(tokens.length >= quantity, "Insufficient available quantity");
 
         uint256[] memory transferredTokens = new uint256[](quantity);
+        uint256[] memory tokenPrices = new uint256[](quantity);
         uint256 fraction = quantity.mul(tokenPrice).div(5);
-
+        uint256 strategyAmount = fraction.mul(4);
         for (uint256 i = 0; i < quantity; i++) {
             uint256 randomNumberIndex = randomGenerator.randomize(
                 tokens.length
@@ -200,6 +202,8 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
             transferredTokens[i] = tokenId;
             tokens[randomNumberIndex] = tokens[tokens.length - 1];
             tokens.pop();
+
+            tokenPrices[i] = strategyAmount.div(quantity);
 
             IERC721(erc721Address).safeTransferFrom(
                 tokensVault,
@@ -216,8 +220,15 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
 
         IERC20(erc20Address).transferFrom(
             msg.sender,
-            strategyContractAddress,
+            address(this),
             fraction.mul(4)
+        );
+
+        IERC20(erc20Address).approve(strategyContractAddress, strategyAmount);
+
+        INomoVault(strategyContractAddress).nftSaleCallback(
+            transferredTokens,
+            tokenPrices
         );
 
         emit LogTokensBought(transferredTokens);
