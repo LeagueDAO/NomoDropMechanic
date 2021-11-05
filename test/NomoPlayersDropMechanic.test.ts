@@ -55,16 +55,19 @@ describe("NomoPlayersDropMechanic tests", function () {
     await erc721Mock.deployed();
     const addressERC721Mock = erc721Mock.address;
 
-    const Strategy_Factory: ContractFactory = await hre.ethers.getContractFactory("StrategyMock");
-    strategyMock = await Strategy_Factory.connect(deployer).deploy() as StrategyMock;
-    await strategyMock.deployed();
-    const addressStrategyMock: string = strategyMock.address;
-
     const ERC20_Factory: ContractFactory = await hre.ethers.getContractFactory("ERC20Mock");
     const mintQty = 2000;
     erc20Mock = await ERC20_Factory.connect(user).deploy(mintQty) as ERC20Mock;
     await erc20Mock.deployed();
     const addressERC20Mock: string = erc20Mock.address;
+
+
+    const Strategy_Factory: ContractFactory = await hre.ethers.getContractFactory("StrategyMock");
+    strategyMock = await Strategy_Factory.connect(deployer).deploy() as StrategyMock;
+    await strategyMock.deployed();
+    await strategyMock.setWantToken(addressERC20Mock)
+    
+    const addressStrategyMock: string = strategyMock.address;
 
     let mintedTokens: string[] = [];
 
@@ -419,6 +422,8 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("should buy tokens from NomoPlayersDropMechanic contract", async function () {
+      const nomoBalanceBefore = await erc20Mock.balanceOf(nomoPlayersDropMechanicAddress)
+
       const userFundsBefore = await erc20Mock.balanceOf(userAddress);
       const daoWalletFundsBefore = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
@@ -430,6 +435,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
       await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought);
 
+      const nomoBalanceAfter = await erc20Mock.balanceOf(nomoPlayersDropMechanicAddress)
       const userTokensAfter = await erc721Mock.balanceOf(userAddress);
       const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
       const userFundsAfter = await erc20Mock.balanceOf(userAddress);
@@ -437,6 +443,8 @@ describe("NomoPlayersDropMechanic tests", function () {
       const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
       const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
 
+      expect(nomoBalanceBefore).to.equal(0);
+      expect(nomoBalanceBefore).to.equal(nomoBalanceAfter);
       expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
       expect(userFundsAfter).to.equal(userFundsBefore.sub(value));
       expect(strategyFundsBefore).to.equal(0);

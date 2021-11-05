@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./RandomGenerator.sol";
+import "./interfaces/INomoVault.sol";
 
 /**
  * @title Contract for distributing ERC721 tokens.
@@ -271,11 +272,4 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     function getTokensLeft() public view returns (uint256) {
         return tokens.length;
     }
-}
-
-interface INomoVault {
-    function nftSaleCallback(
-        uint256[] memory tokensIds,
-        uint256[] memory prices
-    ) external;
 }
