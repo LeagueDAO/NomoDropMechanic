@@ -3,7 +3,7 @@ import hre, { ethers, network } from "hardhat";
 import fs from 'fs';
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
-import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, WHITELISTED_TEST_ADDRESSES } from './helpers/constants';
+import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, WHITELISTED_TEST_ADDRESSES, maxTokensPerWallet } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
@@ -96,7 +96,8 @@ describe("NomoPlayersDropMechanic tests", function () {
       addressERC721Mock,
       deployerAddress,
       tokenPrice,
-      maxQuantity) as NomoPlayersDropMechanic;
+      maxQuantity,
+      maxTokensPerWallet) as NomoPlayersDropMechanic;
 
     await nomoPlayersDropMechanicContract.connect(deployer).deployed();
 
@@ -136,7 +137,9 @@ describe("NomoPlayersDropMechanic tests", function () {
       }
     });
 
-    it("should buy all tokens", async () => {
+    it.only("should buy all tokens", async () => {
+      const { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, erc20MockTest, addressERC20MockTest } = await deployMockContracts();
+
       const tokensToBeBought = collectibleItems;
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
@@ -496,7 +499,8 @@ describe("NomoPlayersDropMechanic tests", function () {
         addressERC721MockTest,
         deployerAddress,
         fakeTokenPrice,
-        maxQuantity) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Token price must be higher than zero');
+        maxQuantity,
+        maxTokensPerWallet) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Token price must be higher than zero');
     });
 
     it("must fail to deploy NomoPlayersDropMechanic contract if maximum quantity is zero", async () => {
@@ -509,7 +513,22 @@ describe("NomoPlayersDropMechanic tests", function () {
         addressERC721MockTest,
         deployerAddress,
         tokenPrice,
-        fakeMaxQuantity) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Maximum quantity must be higher than zero');
+        fakeMaxQuantity,
+        maxTokensPerWallet) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Maximum quantity must be higher than zero');
+    });
+
+    it("must fail to deploy NomoPlayersDropMechanic contract if maximum quantity is zero", async () => {
+      const { addressERC721MockTest } = await deployMockContracts();
+
+      const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
+      const fakeMaxTokensPerWallet = 0;
+
+      await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
+        addressERC721MockTest,
+        deployerAddress,
+        tokenPrice,
+        maxQuantity,
+        fakeMaxTokensPerWallet) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith("Maximum tokens per wallet must be higher than zero");
     });
 
     it("must fail to deploy NomoPlayersDropMechanic contract if ERC721 address is not valid", async () => {
@@ -519,7 +538,8 @@ describe("NomoPlayersDropMechanic tests", function () {
         zeroAddress,
         deployerAddress,
         tokenPrice,
-        maxQuantity) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Not a valid address!');
+        maxQuantity,
+        maxTokensPerWallet) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith('Not a valid address!');
     });
 
     it("must fail if requested quantity is lower or equal to zero", async function () {
@@ -603,7 +623,8 @@ describe("NomoPlayersDropMechanic tests", function () {
         addressERC721MockTest,
         deployerAddress,
         tokenPrice,
-        maxQuantity) as NomoPlayersDropMechanic;
+        maxQuantity,
+        maxTokensPerWallet) as NomoPlayersDropMechanic;
       await nomoPlayersDropMechanicTestContract.connect(deployer).deployed();
 
       await addItemsToContract(mintedTokensShuffled, nomoPlayersDropMechanicTestContract.functions["addTokensToCollection"], "tokens", true);

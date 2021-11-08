@@ -22,6 +22,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     uint256[] private tokens;
     uint256 public tokenPrice;
     uint256 public maxQuantity;
+    uint256 public maxTokensPerWallet;
     address public tokensVault;
     address public daoWalletAddress;
     address public strategyContractAddress;
@@ -30,6 +31,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     uint256 public presaleStartDate;
     uint256 public presaleDuration;
     mapping(address => bool) public whitelisted;
+    mapping(address => uint256) public tokensPerWallet;
     mapping(uint256 => bool) public addedTokens;
 
     RandomGenerator.Random internal randomGenerator;
@@ -59,14 +61,20 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         address _erc721Address,
         address _tokensVault,
         uint256 _tokenPrice,
-        uint256 _maxQuantity
+        uint256 _maxQuantity,
+        uint256 _maxTokensPerWallet
     ) isValidAddress(_erc721Address) isValidAddress(_tokensVault) {
         require(_tokenPrice > 0, "Token price must be higher than zero");
         require(_maxQuantity > 0, "Maximum quantity must be higher than zero");
+        require(
+            _maxTokensPerWallet > 0,
+            "Maximum tokens per wallet must be higher than zero"
+        );
         erc721Address = _erc721Address;
         tokensVault = _tokensVault;
         tokenPrice = _tokenPrice;
         maxQuantity = _maxQuantity;
+        maxTokensPerWallet = _maxTokensPerWallet;
     }
 
     function addTokensToCollection(uint256[] memory tokensArray)
@@ -189,6 +197,10 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
             "Invalid quantity"
         );
         require(tokens.length >= quantity, "Insufficient available quantity");
+        require(
+            (tokensPerWallet[msg.sender] + quantity) >= maxTokensPerWallet,
+            "Maximum tokens per wallet exceeded"
+        );
 
         uint256[] memory transferredTokens = new uint256[](quantity);
         uint256[] memory tokenPrices = new uint256[](quantity);
@@ -211,6 +223,8 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
                 tokenId
             );
         }
+
+        tokensPerWallet[msg.sender] += quantity;
 
         IERC20(erc20Address).transferFrom(
             msg.sender,
