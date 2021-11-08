@@ -1,5 +1,6 @@
 import { ContractReceipt } from 'ethers';
 import { ethers } from "hardhat";
+import { NomoPlayersDropMechanic } from '../../typechain';
 
 export function getTokensFromEventArgs(txReceipt: ContractReceipt, eventName: string) {
     let storage: string[] = [];
@@ -34,4 +35,30 @@ export function shuffle(tokens: number[] | string[]) {
     }
 
     return copy;
+}
+
+const getFunctions = (nomoPlayersDropMechanicTestContract: NomoPlayersDropMechanic) => {
+    return {
+        tokens: nomoPlayersDropMechanicTestContract.addTokensToCollection,
+        addresses: nomoPlayersDropMechanicTestContract.setWhitelisted
+    }
+}
+
+export async function addItems(nomoPlayersDropMechanicTestContract: NomoPlayersDropMechanic, itemsArray: (string | number)[], type: string, test: boolean) {
+    let itemsPerTx = 100;
+    const leftovers = itemsArray.length % itemsPerTx;
+    const loops = (itemsArray.length - (itemsArray.length % itemsPerTx)) / itemsPerTx + 1;
+    let txCounter = 0;
+
+    for (let i = 0; i < itemsArray.length; i += itemsPerTx) {
+        txCounter++;
+
+        if (txCounter == loops) { itemsPerTx = leftovers; }
+
+        const slice: any[] = itemsArray.slice(i, i + itemsPerTx);
+        const addItemsTx = type == "tokens" ? await getFunctions(nomoPlayersDropMechanicTestContract).tokens(slice) : await getFunctions(nomoPlayersDropMechanicTestContract).addresses(slice);
+        await addItemsTx.wait();
+
+        if (!test) console.log(`Add ${type} tx: ${txCounter} has been executed successfully`);
+    }
 }

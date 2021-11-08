@@ -158,8 +158,8 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      */
     function setWhitelisted(address[] memory beneficiaries) public onlyOwner {
         require(
-            beneficiaries.length > 0,
-            "Beneficiaries array must include at least one address"
+            beneficiaries.length > 0 && beneficiaries.length <= 100,
+            "Beneficiaries array length must be in the bounds of 1 and 100"
         );
 
         for (uint256 i = 0; i < beneficiaries.length; i++) {
