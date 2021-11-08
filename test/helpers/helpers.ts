@@ -37,7 +37,6 @@ export function shuffle(tokens: number[] | string[]) {
     return copy;
 }
 
-
 export async function addItemsToContract(itemsArray: (string | number)[], fn: ((items: any[]) => Promise<ContractTransaction>), type: string, showLogs: boolean) {
     let itemsPerTx = 100;
     const leftovers = itemsArray.length % itemsPerTx;
