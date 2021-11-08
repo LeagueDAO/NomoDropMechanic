@@ -25,11 +25,11 @@ task("verify-nomoPlayersDropMechanic", "Verify already deployed contract")
 // Some of the settings should be defined in `./config.js`.
 const cfg: HardhatUserConfig = {
     solidity: {
-        version: '0.8.3',
+        version: '0.8.9',
         settings: {
 			optimizer: {
 				enabled: true,
-				runs: 10
+				runs: 200
 			}
 		}
     },
