@@ -4,7 +4,7 @@ import fs from 'fs';
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
 import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, WHITELISTED_TEST_ADDRESSES } from './helpers/constants';
-import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItems } from './helpers/helpers';
+import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
 let user: Signer, userAddress: string;
@@ -100,7 +100,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     await nomoPlayersDropMechanicContract.connect(deployer).deployed();
 
-    await addItems(nomoPlayersDropMechanicContract, mintedTokensShuffled, "tokens", true);
+    await addItemsToContract(mintedTokensShuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", true);
 
     await nomoPlayersDropMechanicContract.setERC20Address(addressERC20Mock);
     await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
@@ -304,7 +304,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("should set whitelisted addresses", async function () {
-      await addItems(nomoPlayersDropMechanicContract, WHITELISTED_TEST_ADDRESSES, "addresses", true);
+      await addItemsToContract(WHITELISTED_TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", true);
 
       let whitelistedAddresses = [];
 
@@ -606,7 +606,7 @@ describe("NomoPlayersDropMechanic tests", function () {
         maxQuantity) as NomoPlayersDropMechanic;
       await nomoPlayersDropMechanicTestContract.connect(deployer).deployed();
 
-      await addItems(nomoPlayersDropMechanicTestContract, mintedTokensShuffled, "tokens", true);
+      await addItemsToContract(mintedTokensShuffled, nomoPlayersDropMechanicTestContract.functions["addTokensToCollection"], "tokens", true);
 
       await nomoPlayersDropMechanicTestContract.setERC20Address(addressERC20MockTest);
       await nomoPlayersDropMechanicTestContract.setDaoWalletAddress(daoWalletAddress);

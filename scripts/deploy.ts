@@ -2,7 +2,7 @@ import hre, { ethers } from "hardhat";
 import fs from 'fs';
 import { NomoPlayersDropMechanic } from '../typechain';
 import { ContractFactory } from 'ethers';
-import { addItems } from '../test/helpers/helpers';
+import { addItemsToContract } from '../test/helpers/helpers';
 import config from './deployConfig/index';
 import dotenv from 'dotenv';
 
@@ -60,7 +60,7 @@ export async function deployNomoPlayersDropMechanic() {
   console.log(`Strategy contract has been set at address ${strategyContractAddress}`);
 
   // Set whitelisted addresses
-  await addItems(nomoPlayersDropMechanicContract, whitelisted, "addresses", false);
+  await addItemsToContract(whitelisted, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", false);
 
   const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
   await setPresaleStartTx.wait()
@@ -71,7 +71,7 @@ export async function deployNomoPlayersDropMechanic() {
   console.log(`Presale duration has been set to ${presaleDuration} seconds`);
 
   // Set tokens
-  await addItems(nomoPlayersDropMechanicContract, shuffled, "tokens", false);
+  await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);
 
   //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
   // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
