@@ -1,5 +1,6 @@
-import { ContractReceipt } from 'ethers';
+import { ContractReceipt, ContractTransaction } from 'ethers';
 import { ethers } from "hardhat";
+import { NomoPlayersDropMechanic } from '../../typechain';
 
 export function getTokensFromEventArgs(txReceipt: ContractReceipt, eventName: string) {
     let storage: string[] = [];
@@ -34,4 +35,24 @@ export function shuffle(tokens: number[] | string[]) {
     }
 
     return copy;
+}
+
+export async function addItemsToContract(itemsArray: (string | number)[], fn: ((items: any[]) => Promise<ContractTransaction>), type: string, showLogs: boolean) {
+    let itemsPerTx = 100;
+    const leftovers = itemsArray.length % itemsPerTx;
+    const loops = (itemsArray.length - (itemsArray.length % itemsPerTx)) / itemsPerTx + 1;
+    let txCounter = 0;
+
+    for (let i = 0; i < itemsArray.length; i += itemsPerTx) {
+        txCounter++;
+
+        if (txCounter == loops) { itemsPerTx = leftovers; }
+
+        const slice: any[] = itemsArray.slice(i, i + itemsPerTx);
+
+        const addItemsToContractTx = await fn(slice);
+        await addItemsToContractTx.wait();
+
+        if (!showLogs) console.log(`Add ${type} tx: ${txCounter} has been executed successfully`);
+    }
 }

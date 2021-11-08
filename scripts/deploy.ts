@@ -2,6 +2,7 @@ import hre, { ethers } from "hardhat";
 import fs from 'fs';
 import { NomoPlayersDropMechanic } from '../typechain';
 import { ContractFactory } from 'ethers';
+import { addItemsToContract } from '../test/helpers/helpers';
 import config from './deployConfig/index';
 import dotenv from 'dotenv';
 
@@ -58,6 +59,9 @@ export async function deployNomoPlayersDropMechanic() {
   await setStrategyTx.wait();
   console.log(`Strategy contract has been set at address ${strategyContractAddress}`);
 
+  // Set whitelisted addresses
+  await addItemsToContract(whitelisted, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", false);
+
   const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
   await setPresaleStartTx.wait()
   console.log(`Presale start date set on unix: ${presaleStartDate}`);
@@ -66,27 +70,8 @@ export async function deployNomoPlayersDropMechanic() {
   await setPresaleDurationTx.wait();
   console.log(`Presale duration has been set to ${presaleDuration} seconds`);
 
-  const setWhitelistedTx = await nomoPlayersDropMechanicContract.setWhitelisted(whitelisted);
-  await setWhitelistedTx.wait()
-  console.log(`White listed addresses have been set!`);
-
-  let tokensPerTx = 100;
-  const leftovers = collectionLength % tokensPerTx;
-  const loops = (collectionLength - (collectionLength % tokensPerTx)) / tokensPerTx + 1;
-
-  let txCounter = 0;
-
-  for (let i = 0; i < shuffled.length; i += tokensPerTx) {
-    txCounter++;
-    if (txCounter == loops) { tokensPerTx = leftovers; }
-
-    const slice = shuffled.slice(i, i + tokensPerTx);
-
-    const addTokensTx = await nomoPlayersDropMechanicContract.addTokensToCollection(slice, { gasLimit: GAS_LIMIT });
-    
-    await addTokensTx.wait();
-    console.log(`Add tokens tx: ${txCounter} has been executed successfully`);
-  }
+  // Set tokens
+  await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);
 
   //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
   // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });

@@ -1,9 +1,10 @@
 const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
+import fs from 'fs';
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
-import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, THIRTY_SECONDS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS } from './helpers/constants';
-import { getTokensFromEventArgs, getBlockTimestamp, shuffle } from './helpers/helpers';
+import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, WHITELISTED_TEST_ADDRESSES } from './helpers/constants';
+import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
 let user: Signer, userAddress: string;
@@ -83,7 +84,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       mintedTokens = [...mintedTokens, ...getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
     }
 
-    let mintedTokensShuffled = shuffle(mintedTokens);
+    let mintedTokensShuffled: (string | number)[] = shuffle(mintedTokens);
 
     expect(mintedTokensShuffled.length).not.to.equal(0);
     expect(addressERC721Mock).not.to.equal(zeroAddress);
@@ -99,19 +100,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
     await nomoPlayersDropMechanicContract.connect(deployer).deployed();
 
-    let tokensPerTx = 100;
-    const leftovers = collectibleItems % tokensPerTx;
-    const loops = (collectibleItems - (collectibleItems % tokensPerTx)) / tokensPerTx + 1;
-
-    let txCounter = 0;
-
-    for (let i = 0; i < mintedTokensShuffled.length; i += tokensPerTx) {
-      txCounter++;
-      if (txCounter == loops) { tokensPerTx = leftovers; }
-      const slice = mintedTokensShuffled.slice(i, i + tokensPerTx);
-      const addTokensTx = await nomoPlayersDropMechanicContract.addTokensToCollection(slice);
-      await addTokensTx.wait();
-    }
+    await addItemsToContract(mintedTokensShuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", true);
 
     await nomoPlayersDropMechanicContract.setERC20Address(addressERC20Mock);
     await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
@@ -170,7 +159,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       expect(tokenBalanceBefore).to.equal(tokensToBeBought);
       expect(tokenBalanceAfter).to.equal(0);
-    }).timeout(THIRTY_SECONDS);
+    }).timeout(ONE_MIN_IN_MILLIS);
 
     it("must fail to set tokens if token has been already added", async function () {
       const collection: number[] = [1];
@@ -310,19 +299,17 @@ describe("NomoPlayersDropMechanic tests", function () {
   });
 
   context("for whitelisted", () => {
-    const whitelistedArrayAddresses: string[] = [testAddress, testAddress2, testAddress];
-
     it("should emit LogWhitelistedSet event", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted(whitelistedArrayAddresses)).to.emit(nomoPlayersDropMechanicContract, "LogWhitelistedSet");
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([WHITELISTED_TEST_ADDRESSES[1]])).to.emit(nomoPlayersDropMechanicContract, "LogWhitelistedSet");
     });
 
     it("should set whitelisted addresses", async function () {
-      await nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted(whitelistedArrayAddresses);
+      await addItemsToContract(WHITELISTED_TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", true);
 
       let whitelistedAddresses = [];
 
-      for (let i = 0; i < whitelistedArrayAddresses.length; i++) {
-        const whitelistedAddress = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(whitelistedArrayAddresses[i]);
+      for (let i = 0; i < WHITELISTED_TEST_ADDRESSES.length; i++) {
+        const whitelistedAddress = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(WHITELISTED_TEST_ADDRESSES[i]);
         whitelistedAddresses.push(whitelistedAddress);
       }
 
@@ -330,12 +317,17 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail to set whitelisted if msg.sender isn't owner", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(user).setWhitelisted(whitelistedArrayAddresses))
+      await expect(nomoPlayersDropMechanicContract.connect(user).setWhitelisted(WHITELISTED_TEST_ADDRESSES))
         .to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it("must fail to set whitelisted if whitelisted array does not have any addresses", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([])).to.be.revertedWith("Beneficiaries array must include at least one address");
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([])).to.be.revertedWith("Beneficiaries array length must be in the bounds of 1 and 100");
+    });
+
+    it("must fail to set whitelisted if whitelisted array is over 100", async function () {
+      const exceedingLimitNumberOfAddr = WHITELISTED_TEST_ADDRESSES.slice(0, 101);
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted(exceedingLimitNumberOfAddr)).to.be.revertedWith("Beneficiaries array length must be in the bounds of 1 and 100");
     });
   });
 
@@ -557,7 +549,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought2))
         .to.be.revertedWith("Insufficient available quantity");
-    }).timeout(THIRTY_SECONDS);
+    }).timeout(ONE_MIN_IN_MILLIS);
 
     it("must fail if requested quantity exceeds the limit", async function () {
       const tokensToBeBought = maxQuantity + 1;
@@ -614,18 +606,7 @@ describe("NomoPlayersDropMechanic tests", function () {
         maxQuantity) as NomoPlayersDropMechanic;
       await nomoPlayersDropMechanicTestContract.connect(deployer).deployed();
 
-      let tokensPerTx = 100;
-      const leftovers = collectibleItems % tokensPerTx;
-      const loops = (collectibleItems - (collectibleItems % tokensPerTx)) / tokensPerTx + 1;
-      let txCounter = 0;
-
-      for (let i = 0; i < mintedTokensShuffled.length; i += tokensPerTx) {
-        txCounter++;
-        if (txCounter == loops) { tokensPerTx = leftovers; }
-        const slice = mintedTokensShuffled.slice(i, i + tokensPerTx);
-        const addTokensTx = await nomoPlayersDropMechanicTestContract.addTokensToCollection(slice);
-        await addTokensTx.wait();
-      }
+      await addItemsToContract(mintedTokensShuffled, nomoPlayersDropMechanicTestContract.functions["addTokensToCollection"], "tokens", true);
 
       await nomoPlayersDropMechanicTestContract.setERC20Address(addressERC20MockTest);
       await nomoPlayersDropMechanicTestContract.setDaoWalletAddress(daoWalletAddress);
