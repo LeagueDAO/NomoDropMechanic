@@ -159,7 +159,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       expect(tokenBalanceBefore).to.equal(tokensToBeBought);
       expect(tokenBalanceAfter).to.equal(0);
-    }).timeout(THIRTY_SECONDS * 2);
+    }).timeout(ONE_MIN);
 
     it("must fail to set tokens if token has been already added", async function () {
       const collection: number[] = [1];
