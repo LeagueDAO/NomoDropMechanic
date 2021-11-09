@@ -30,13 +30,6 @@ export async function deployNomoPlayersDropMechanic() {
   const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
   const whitelisted = config.WHITE_LISTED;
 
-  console.log('erc721Address: ', erc721Address);
-  console.log('tokensVault: ', tokensVault);
-  console.log('price: ', price);
-  console.log('erc20Address: ', erc20Address);
-  console.log('strategyContractAddress: ', strategyContractAddress);
-  
-
   const mintedTokens = config.generateCollection(collectionLength);
   //! shuffled so we do not know the actual order inside
   const shuffled = shuffle(mintedTokens)
@@ -69,13 +62,13 @@ export async function deployNomoPlayersDropMechanic() {
   // Set whitelisted addresses
   await addItemsToContract(whitelisted, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", false);
 
-  // const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
-  // await setPresaleStartTx.wait()
-  // console.log(`Presale start date set on unix: ${presaleStartDate}`);
+  const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
+  await setPresaleStartTx.wait()
+  console.log(`Presale start date set on unix: ${presaleStartDate}`);
 
-  // const setPresaleDurationTx = await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
-  // await setPresaleDurationTx.wait();
-  // console.log(`Presale duration has been set to ${presaleDuration} seconds`);
+  const setPresaleDurationTx = await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
+  await setPresaleDurationTx.wait();
+  console.log(`Presale duration has been set to ${presaleDuration} seconds`);
 
   // Set tokens
   await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);

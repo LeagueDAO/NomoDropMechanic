@@ -10,7 +10,6 @@ export const networks: NetworksUserConfig = {
         url: 'http://localhost:8545',
     },
     hardhat: {
-        hardfork: "byzantium",
     },
     // Mumbai Testnet
     mumbai: {
