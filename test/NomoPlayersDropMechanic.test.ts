@@ -3,7 +3,7 @@ import hre, { ethers, network } from "hardhat";
 import fs from 'fs';
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
-import { tokenPrice, collectibleItems, maxQuantity, testAddress, testAddress2, zeroAddress, ONE_MIN_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, WHITELISTED_TEST_ADDRESSES, maxTokensPerWallet } from './helpers/constants';
+import { tokenPrice, collectibleItems, maxQuantity, testAddress, zeroAddress, TWO_MINS_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, WHITELISTED_TEST_ADDRESSES, maxTokensPerWallet } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
@@ -201,7 +201,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       expect(tokenBalanceBefore).to.equal(tokensToBeBought);
       expect(tokenBalanceAfter).to.equal(0);
-    }).timeout(ONE_MIN_IN_MILLIS);
+    }).timeout(TWO_MINS_IN_MILLIS);
 
     it("must fail to set tokens if token has been already added", async function () {
       const collection: number[] = [1];
@@ -399,7 +399,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
       const userTokensBefore = await erc721Mock.balanceOf(userAddress);
       const tokenVaultQtyBefore = await erc721Mock.balanceOf(deployerAddress);
-      const tokensPerWalletBefore = await nomoPlayersDropMechanicContract.tokensPerWallet(userAddress);
+      const claimedTokensBefore = await nomoPlayersDropMechanicContract.claimedTokens(userAddress);
 
       const tokensToBeBought = 1;
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
@@ -414,10 +414,10 @@ describe("NomoPlayersDropMechanic tests", function () {
       const daoWalletFundsAfter = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
       const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
-      const tokensPerWalletAfter = await nomoPlayersDropMechanicContract.tokensPerWallet(userAddress);
+      const claimedTokensAfter = await nomoPlayersDropMechanicContract.claimedTokens(userAddress);
 
-      expect(tokensPerWalletBefore).to.equal(0);
-      expect(tokensPerWalletAfter).to.equal(tokensToBeBought);
+      expect(claimedTokensBefore).to.equal(0);
+      expect(claimedTokensAfter).to.equal(tokensToBeBought);
       expect(isWhitelistedBefore).to.equal(true);
       expect(isWhitelistedAfter).to.equal(false);
       expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
@@ -490,7 +490,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
       const userTokensBefore = await erc721Mock.balanceOf(userAddress);
       const tokenVaultQtyBefore = await erc721Mock.balanceOf(deployerAddress);
-      const tokensPerWalletBefore = await nomoPlayersDropMechanicContract.tokensPerWallet(userAddress);
+      const claimedTokensBefore = await nomoPlayersDropMechanicContract.claimedTokens(userAddress);
 
       let tokensToBeBought;
       maxQuantity > maxTokensPerWallet ? tokensToBeBought = maxTokensPerWallet : tokensToBeBought = maxQuantity;
@@ -505,10 +505,10 @@ describe("NomoPlayersDropMechanic tests", function () {
       const daoWalletFundsAfter = await erc20Mock.balanceOf(daoWalletAddress);
       const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
       const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
-      const tokensPerWalletAfter = await nomoPlayersDropMechanicContract.tokensPerWallet(userAddress);
+      const claimedTokensAfter = await nomoPlayersDropMechanicContract.claimedTokens(userAddress);
 
-      expect(tokensPerWalletBefore).to.equal(0);
-      expect(tokensPerWalletAfter).to.equal(tokensToBeBought);
+      expect(claimedTokensBefore).to.equal(0);
+      expect(claimedTokensAfter).to.equal(tokensToBeBought);
       expect(nomoBalanceBefore).to.equal(0);
       expect(nomoBalanceBefore).to.equal(nomoBalanceAfter);
       expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
@@ -569,14 +569,14 @@ describe("NomoPlayersDropMechanic tests", function () {
       const { addressERC721MockTest } = await deployMockContracts();
 
       const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
-      const fakeMaxTokensPerWallet = 0;
+      const fakeMaxclaimedTokens = 0;
 
       await expect(NomoPlayersDropMechanic_Factory_Test.deploy(
         addressERC721MockTest,
         deployerAddress,
         tokenPrice,
         maxQuantity,
-        fakeMaxTokensPerWallet) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith("Maximum tokens per wallet must be higher than zero");
+        fakeMaxclaimedTokens) as Promise<NomoPlayersDropMechanic>).to.be.revertedWith("Maximum tokens per wallet must be higher than zero");
     });
 
     it("must fail to deploy NomoPlayersDropMechanic contract if ERC721 address is not valid", async () => {
@@ -659,7 +659,7 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       await expect(nomoPlayersDropMechanicTestContract.connect(user).buyTokensOnSale(tokensToBeBought2))
         .to.be.revertedWith("Insufficient available quantity");
-    }).timeout(ONE_MIN_IN_MILLIS);
+    }).timeout(TWO_MINS_IN_MILLIS);
 
     it("must fail if requested quantity exceeds the limit", async function () {
       const tokensToBeBought = maxQuantity + 1;
@@ -702,9 +702,8 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail if user doesn't have enough ERC20 tokens", async function () {
+      let tokensToBeBought = maxQuantity;
       // Deploy ERC721Mock, StrategyMock and ERC20Mock, and mint `n` tokens on `user` address who is also deployer of the ERC20Mock contract
-      let tokensToBeBought;
-      maxQuantity > maxTokensPerWallet ? tokensToBeBought = maxTokensPerWallet : tokensToBeBought = maxQuantity;
       const { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, erc20MockTest, addressERC20MockTest } = await deployMockContracts(tokensToBeBought - 1);
 
       const userFundsBefore = await erc20MockTest.balanceOf(userAddress);
@@ -712,7 +711,6 @@ describe("NomoPlayersDropMechanic tests", function () {
       const daoWalletFundsBefore = await erc20MockTest.balanceOf(daoWalletAddress);
       const strategyFundsBefore = await erc20MockTest.balanceOf(strategyMock.address);
       const userTokensBefore = await erc721MockTest.balanceOf(userAddress);
-      const tokensPerWalletBefore = await nomoPlayersDropMechanicContract.tokensPerWallet(userAddress);
 
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
 
@@ -742,6 +740,8 @@ describe("NomoPlayersDropMechanic tests", function () {
         maxTokensPerWallet) as NomoPlayersDropMechanic;
       await nomoPlayersDropMechanicTestContract.connect(deployer).deployed();
 
+      const claimedTokensBefore = await nomoPlayersDropMechanicTestContract.claimedTokens(userAddress);
+
       await addItemsToContract(mintedTokensShuffled, nomoPlayersDropMechanicTestContract.functions["addTokensToCollection"], "tokens", true);
 
       await nomoPlayersDropMechanicTestContract.setERC20Address(addressERC20MockTest);
@@ -765,11 +765,11 @@ describe("NomoPlayersDropMechanic tests", function () {
       const daoWalletFundsAfter = await erc20MockTest.balanceOf(daoWalletAddress);
       const strategyFundsAfter = await erc20MockTest.balanceOf(strategyMock.address);
       const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
-      const tokensPerWalletAfter = await nomoPlayersDropMechanicContract.tokensPerWallet(userAddress);
+      const claimedTokensAfter = await nomoPlayersDropMechanicTestContract.claimedTokens(userAddress);
 
       // The state of the balances must not have changed after, because of the reverted transacted
-      expect(tokensPerWalletBefore).to.equal(0);
-      expect(tokensPerWalletAfter).to.equal(tokensPerWalletBefore);
+      expect(claimedTokensBefore).to.equal(0);
+      expect(claimedTokensAfter).to.equal(claimedTokensBefore);
       expect(tokenVaultQtyBefore).to.equal(collectibleItems);
       expect(tokenVaultQtyAfter).to.equal(tokenVaultQtyBefore);
       expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems);
