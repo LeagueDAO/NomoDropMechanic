@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./RandomGenerator.sol";
 import "./interfaces/INomoVault.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Contract for distributing ERC721 tokens.
