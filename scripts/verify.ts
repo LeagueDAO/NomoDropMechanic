@@ -21,6 +21,7 @@ export async function verifyNomoPlayersDropMechanic(): Promise<void> {
                 contracts.tokensVault,
                 contracts.price,
                 contracts.maxQuantity,
+                contracts.maxTokensPerWallet
             ],
         });
     } catch (error: any) {
