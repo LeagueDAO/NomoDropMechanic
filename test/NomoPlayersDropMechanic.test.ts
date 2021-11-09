@@ -670,19 +670,16 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail if requested quantity exceeds maximum tokens per wallet", async function () {
-      let tokensToBeBought;
-      maxQuantity > maxTokensPerWallet ? tokensToBeBought = maxTokensPerWallet : tokensToBeBought = maxQuantity;
-      tokensToBeBought++;
-      const value = BigNumber.from(100).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-
       let tokensPerTxBuy = maxQuantity;
-      const itemsToLoop = maxTokensPerWallet - maxQuantity + 1;
-      const leftoversToBuy = itemsToLoop % tokensPerTxBuy;
-      const loopsBuy = (itemsToLoop - (itemsToLoop % tokensPerTxBuy)) / tokensPerTxBuy + 1;
+      const tokens = maxTokensPerWallet - maxQuantity + 1;
+      const leftoversToBuy = tokens % tokensPerTxBuy;
+      const loopsBuy = (tokens - (tokens % tokensPerTxBuy)) / tokensPerTxBuy + 1;
       let txCounterBuy = 0;
 
-      for (let i = 0; i < itemsToLoop; i += tokensPerTxBuy) {
+      const value = BigNumber.from(tokens).mul(tokenPrice);
+      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+
+      for (let i = 0; i < tokens; i += tokensPerTxBuy) {
         txCounterBuy++;
         if (txCounterBuy == loopsBuy) { tokensPerTxBuy = leftoversToBuy; }
         await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensPerTxBuy);
