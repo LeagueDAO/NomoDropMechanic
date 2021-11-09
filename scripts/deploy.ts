@@ -22,6 +22,7 @@ export async function deployNomoPlayersDropMechanic() {
   const price = coerceUndefined(process.env.TOKEN_PRICE);
   const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH)
   const maxQuantity = coerceUndefined(process.env.MAX_QUANTITY);
+  const maxTokensPerWallet = coerceUndefined(process.env.MAX_TOKENS_PER_WALLET);
   const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
   const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
   const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
@@ -39,7 +40,8 @@ export async function deployNomoPlayersDropMechanic() {
     erc721Address,
     tokensVault,
     price,
-    maxQuantity, { gasLimit: ethers.BigNumber.from(GAS_LIMIT) }) as NomoPlayersDropMechanic;
+    maxQuantity,
+    maxTokensPerWallet, { gasLimit: ethers.BigNumber.from(GAS_LIMIT) }) as NomoPlayersDropMechanic;
 
   console.log(`Deploying NomoPlayersDropMechanic at address: ${nomoPlayersDropMechanicContract.address} please wait...\n`);
 
@@ -86,6 +88,7 @@ export async function deployNomoPlayersDropMechanic() {
     daoWalletAddress,
     price,
     maxQuantity,
+    maxTokensPerWallet,
     collectionLength,
     presaleStartDate,
     presaleDuration,

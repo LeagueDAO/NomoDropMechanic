@@ -56,25 +56,26 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * @param _tokensVault address of the wallet used to store tokensArray
      * @param _tokenPrice to be used for the price
      * @param _maxQuantity to be used for the maximum quantity
+     * @param _maxTokensPerWallet to be used for the maximum tokens per wallet
      */
     constructor(
         address _erc721Address,
         address _tokensVault,
         uint256 _tokenPrice,
         uint256 _maxQuantity,
-        uint256 _maxclaimedTokens
+        uint256 _maxTokensPerWallet
     ) isValidAddress(_erc721Address) isValidAddress(_tokensVault) {
         require(_tokenPrice > 0, "Token price must be higher than zero");
         require(_maxQuantity > 0, "Maximum quantity must be higher than zero");
         require(
-            _maxclaimedTokens > 0,
+            _maxTokensPerWallet > 0,
             "Maximum tokens per wallet must be higher than zero"
         );
         erc721Address = _erc721Address;
         tokensVault = _tokensVault;
         tokenPrice = _tokenPrice;
         maxQuantity = _maxQuantity;
-        maxTokensPerWallet = _maxclaimedTokens;
+        maxTokensPerWallet = _maxTokensPerWallet;
     }
 
     function addTokensToCollection(uint256[] memory tokensArray)
