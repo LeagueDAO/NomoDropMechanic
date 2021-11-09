@@ -6,7 +6,7 @@ export const collectibleItems: number = 102;
 
 export const maxQuantity: number = 100;
 
-export let maxTokensPerWallet: number = 20;
+export const maxTokensPerWallet: number = 20;
 
 export const testAddress: string = "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3";
 
