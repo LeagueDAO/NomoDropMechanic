@@ -340,6 +340,28 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
+  context("for initial tokens length", () => {
+    it("should emit LogInitialTokensLengthSet event", async function () {
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setInitialTokensLength(collectibleItems)).to.emit(nomoPlayersDropMechanicContract, "LogInitialTokensLengthSet");
+    })
+
+    it("should set initial tokens length", async function () {
+      await nomoPlayersDropMechanicContract.connect(deployer).setInitialTokensLength(collectibleItems);
+      const tokensLength = await nomoPlayersDropMechanicContract.connect(deployer).initialTokensLength();
+      expect(tokensLength).to.equal(collectibleItems)
+    });
+
+    it("must fail to initial tokens length if msg.sender isn't owner", async function () {
+      await expect(nomoPlayersDropMechanicContract.connect(user).setInitialTokensLength(collectibleItems))
+        .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("must fail to initial tokens length if initial tokens length is zero", async function () {
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setInitialTokensLength(0))
+        .to.be.revertedWith("must be above 0!");
+    });
+  })
+
   context("for whitelisted", () => {
     it("should emit LogWhitelistedSet event", async function () {
       await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([WHITELISTED_TEST_ADDRESSES[1]])).to.emit(nomoPlayersDropMechanicContract, "LogWhitelistedSet");

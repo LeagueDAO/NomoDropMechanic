@@ -75,6 +75,10 @@ export async function deployNomoPlayersDropMechanic() {
   // Set tokens
   await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);
 
+  const setInitialTokensLengthTx = await nomoPlayersDropMechanicContract.setInitialTokensLength(collectionLength)
+  await setInitialTokensLengthTx.wait();
+  console.log(`Initial tokens length has been set to ${collectionLength}`);
+
   //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
   // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
 
