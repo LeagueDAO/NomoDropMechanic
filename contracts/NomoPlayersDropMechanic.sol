@@ -20,6 +20,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     using Address for address;
 
     uint256[] private tokens;
+    uint256 public initialTokensLength;
     uint256 public tokenPrice;
     uint256 public maxQuantity;
     uint256 public maxTokensPerWallet;
@@ -42,6 +43,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     event LogDaoWalletAddressSet(address _daoWalletAddress);
     event LogPresaleStartDateSet(uint256 _presaleStartDate);
     event LogPresaleDurationSet(uint256 _presaleDuration);
+    event LogInitialTokensLengthSet(uint256 _initialTokensLength);
     event LogWhitelistedSet(address[] _whitelisted);
     event LogTokensAdded(uint256 length);
 
@@ -159,6 +161,16 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         require(_presaleDuration > 0, "Presale: not a valid duration!");
         presaleDuration = _presaleDuration;
         emit LogPresaleDurationSet(presaleDuration);
+    }
+
+    /**
+     * @notice Sets initialTokensLength.
+     * @param _initialTokensLength uint256 representing the initial length of the tokens
+     */
+    function setInitialTokensLength(uint256 _initialTokensLength) public onlyOwner {
+        require(_initialTokensLength > 0, "must be above 0!");
+        initialTokensLength = _initialTokensLength;
+        emit LogInitialTokensLengthSet(initialTokensLength);
     }
 
     /**
