@@ -351,12 +351,12 @@ describe("NomoPlayersDropMechanic tests", function () {
       expect(tokensLength).to.equal(collectibleItems)
     });
 
-    it("must fail to set presale duration if msg.sender isn't owner", async function () {
+    it("must fail to initial tokens length if msg.sender isn't owner", async function () {
       await expect(nomoPlayersDropMechanicContract.connect(user).setInitialTokensLength(collectibleItems))
         .to.be.revertedWith("Ownable: caller is not the owner");
     });
 
-    it("must fail to set presale duration if presale duration is zero", async function () {
+    it("must fail to initial tokens length if initial tokens length is zero", async function () {
       await expect(nomoPlayersDropMechanicContract.connect(deployer).setInitialTokensLength(0))
         .to.be.revertedWith("must be above 0!");
     });
