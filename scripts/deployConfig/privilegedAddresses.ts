@@ -1,30 +1,4 @@
-export const tokenPrice: string = (1 * 10 ** 18).toString();
-
-export const zeroAddress = "0x0000000000000000000000000000000000000000";
-
-export const collectibleItems: number = 351;
-
-export const maxQuantity: number = 3;
-
-export const maxTokensPerWallet: number = 20;
-
-export const testAddress: string = "0x380Fa2d97357e2bEf991c63CEC20a280b8CA6EE3";
-
-export const testAddress2: string = "0xB97584664DD26D4aDD36DCA6A77020fCe60CA7FF";
-
-export const TWO_MINS_IN_MILLIS: number = 1200000;
-
-export const ONE_MIN: number = 60;
-
-export const ONE_HOUR = ONE_MIN * 60;
-
-export const TWO_HOURS = ONE_HOUR * 2;
-
-export const THREE_HOURS = ONE_HOUR * 3;
-
-export const FOUR_HOURS = ONE_HOUR * 4;
-
-export let TEST_ADDRESSES = [
+export const PRIVILEGED = [
     "0x67A09D6aBE84D03DBCbeE0a23f287CD4CF648fBc",
     "0xccfbB97611b457Ae7cfC4F414dF1e9F19A55854a",
     "0xDE9BE4b9259A1295ed205ca1A320Eb62C8EE4Eef",
@@ -315,12 +289,4 @@ export let TEST_ADDRESSES = [
     "0x4b173c4D29517e29Df348Ab2502526fD42A2510E",
     "0x1B54F4Ca6614513022A31F64138863EEd810A9d4",
     "0x007e01C5d5966AD294F27244d932eF0F4EAa61a2",
-    "0xcB59029E193CE97ad794479244831Dd8CeB2198C",
-    "0x9FDDdAc6d1Ebb4e31bab129F262Cb2075E6f4c74",
-    "0x89E93Af8C9CE68866042d184AA438F6c867bD85b",
-    "0x7dfAd42e4fd3788C67b22EDa93307608F833f720",
-    "0x3405cDfd0db6C8f98c0D7aDb829E5F544Ec6B21B",
-    "0x67AcC37ECF0513AdD3F44a6d80819D6E46e4CFbd",
-    "0x80C2ed81D49fB1f90018983b0d85B5795D497C16",
-    "0x39E0931E60CDB06A9B7e2ff605918Eac0058Ba38",
-]
+];

@@ -30,6 +30,7 @@ export async function deployNomoPlayersDropMechanic() {
   const presaleStartDate = coerceUndefined(process.env.PRESALE_START_DATE);
   const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
   const whitelisted = config.WHITE_LISTED;
+  const privileged = config.PRIVILEGED;
 
   const mintedTokens = config.generateCollection(collectionLength);
   //! shuffled so we do not know the actual order inside
@@ -63,14 +64,15 @@ export async function deployNomoPlayersDropMechanic() {
 
   // Set whitelisted addresses
   await addItemsToContract(whitelisted, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", false);
+  console.log(`Whitelisted addresses have been set`);
 
-  const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
-  await setPresaleStartTx.wait()
-  console.log(`Presale start date set on unix: ${presaleStartDate}`);
+  // const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
+  // await setPresaleStartTx.wait()
+  // console.log(`Presale start date set on unix: ${presaleStartDate}`);
 
-  const setPresaleDurationTx = await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
-  await setPresaleDurationTx.wait();
-  console.log(`Presale duration has been set to ${presaleDuration} seconds`);
+  // const setPresaleDurationTx = await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
+  // await setPresaleDurationTx.wait();
+  // console.log(`Presale duration has been set to ${presaleDuration} seconds`);
 
   // Set tokens
   await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);
@@ -78,6 +80,10 @@ export async function deployNomoPlayersDropMechanic() {
   const setInitialTokensLengthTx = await nomoPlayersDropMechanicContract.setInitialTokensLength(collectionLength)
   await setInitialTokensLengthTx.wait();
   console.log(`Initial tokens length has been set to ${collectionLength}`);
+
+  // Set privileged addresses
+  await addItemsToContract(privileged, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", false);
+  console.log(`Privileged addresses have been set`);
 
   //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
   // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
@@ -98,6 +104,7 @@ export async function deployNomoPlayersDropMechanic() {
     presaleDuration,
     mintedTokens: [...shuffled],
     whitelisted,
+    privileged
   }, null, 2));
 
   console.log('Done!');
