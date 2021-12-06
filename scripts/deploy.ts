@@ -64,7 +64,7 @@ export async function deployNomoPlayersDropMechanic() {
 
   // Set whitelisted addresses
   await addItemsToContract(whitelisted, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", false);
-  console.log(`Whitelisted addresses have been set`);
+  console.log(`Whitelisted addresses have been set!`);
 
   const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
   await setPresaleStartTx.wait()
@@ -83,7 +83,7 @@ export async function deployNomoPlayersDropMechanic() {
 
   // Set privileged addresses
   await addItemsToContract(privileged, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", false);
-  console.log(`Privileged addresses have been set`);
+  console.log(`Privileged addresses have been set!`);
 
   //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
   // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
