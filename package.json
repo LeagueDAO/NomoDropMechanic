@@ -15,9 +15,10 @@
     "contracts:airdrop:ropsten": "env-cmd --silent -f .env.dev npx hardhat airdrop-nomoPlayersDropMechanic --network ropsten",
     "contracts:migrate:mumbai": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network mumbai",
     "contracts:verify:mumbai": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network mumbai",
+    "contracts:airdrop:mumbai": "env-cmd --silent -f .env.dev npx hardhat airdrop-nomoPlayersDropMechanic --network mumbai",
     "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nomoPlayersDropMechanic --network mainnet",
     "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nomoPlayersDropMechanic --network mainnet",
-    "contracts:airdrop:mumbai": "env-cmd --silent -f .env.dev npx hardhat airdrop-nomoPlayersDropMechanic --network mumbai"
+    "contracts:airdrop:prod": "env-cmd --silent -f .env.dev npx hardhat airdrop-nomoPlayersDropMechanic --network mainnet"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
