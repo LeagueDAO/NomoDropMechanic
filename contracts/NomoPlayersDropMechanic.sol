@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./RandomGenerator.sol";
 import "./interfaces/INomoVault.sol";
 
-
 /**
  * @title Contract for distributing ERC721 tokens.
  * The purpose is to give the ability for users to buy with ERC20, randomly chosen tokens from the collection.
@@ -231,10 +230,11 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
             "Invalid airdrop parameters"
         );
         uint256[] memory airdroppedTokens = new uint256[](privileged.length);
-        claimedTokens[msg.sender] += privileged.length;
         isAirdropExecuted = true;
 
         for (uint256 i = 0; i < privileged.length; i++) {
+            claimedTokens[privileged[i]]++;
+            
             uint256 randomNumberIndex = randomGenerator.randomize(
                 tokens.length
             );

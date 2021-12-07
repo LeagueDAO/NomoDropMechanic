@@ -435,8 +435,13 @@ describe("NomoPlayersDropMechanic tests", function () {
       await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
 
       for (let j = 0; j < TEST_ADDRESSES.length; j++) {
-        const addressErc721Balance = await erc721Mock.balanceOf(TEST_ADDRESSES[j])
+        const currAddress  = TEST_ADDRESSES[j];
+
+        const addressErc721Balance = await erc721Mock.balanceOf(currAddress);
         expect(addressErc721Balance).to.equal(1);
+
+        const addressClaimedTokens = await nomoPlayersDropMechanicContract.claimedTokens(currAddress);
+        expect(addressClaimedTokens).to.equal(1);
       }
     });
 

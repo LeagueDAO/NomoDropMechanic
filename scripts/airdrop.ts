@@ -12,7 +12,3 @@ export async function executeAirdrop() {
   console.log(`Air-dropping ERC721 to privileged users...`);
   await nomoPlayersDropMechanic.executeAirdrop();
 }
-
-
-
-
