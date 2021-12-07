@@ -22,16 +22,22 @@ task("verify-nomoPlayersDropMechanic", "Verify already deployed contract")
         const { verifyNomoPlayersDropMechanic } = await lazyImport('./scripts/verify');
         await verifyNomoPlayersDropMechanic();
     })
+
+task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to privileged users")
+    .setAction(async () => {
+        const { executeAirdrop } = await lazyImport('./scripts/airdrop');
+        await executeAirdrop();
+    })
 // Some of the settings should be defined in `./config.js`.
 const cfg: HardhatUserConfig = {
     solidity: {
         version: '0.8.9',
         settings: {
-			optimizer: {
-				enabled: true,
-				runs: 200
-			}
-		}
+            optimizer: {
+                enabled: true,
+                runs: 200
+            }
+        }
     },
     defaultNetwork: 'hardhat',
     networks: config.networks,

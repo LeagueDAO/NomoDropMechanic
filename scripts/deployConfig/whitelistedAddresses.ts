@@ -1,4 +1,3 @@
-//todo this might come as json
 export const WHITE_LISTED = [
     "0x9b553B0d90c9CF07401a61ae05FA9E9fF6eB2784",
     "0x1c1a8ce591824bf3Cc2F8DAa36EAa49C8c45DdB6",

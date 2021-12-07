@@ -3,7 +3,7 @@ import hre, { ethers, network } from "hardhat";
 import fs from 'fs';
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, Attacker } from '../typechain';
-import { tokenPrice, collectibleItems, maxQuantity, testAddress, zeroAddress, TWO_MINS_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, WHITELISTED_TEST_ADDRESSES, maxTokensPerWallet } from './helpers/constants';
+import { tokenPrice, collectibleItems, maxQuantity, testAddress, zeroAddress, TWO_MINS_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, TEST_ADDRESSES, maxTokensPerWallet } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
@@ -364,16 +364,16 @@ describe("NomoPlayersDropMechanic tests", function () {
 
   context("for whitelisted", () => {
     it("should emit LogWhitelistedSet event", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([WHITELISTED_TEST_ADDRESSES[1]])).to.emit(nomoPlayersDropMechanicContract, "LogWhitelistedSet");
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([TEST_ADDRESSES[1]])).to.emit(nomoPlayersDropMechanicContract, "LogWhitelistedSet");
     });
 
     it("should set whitelisted addresses", async function () {
-      await addItemsToContract(WHITELISTED_TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", true);
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", true);
 
       let whitelistedAddresses = [];
 
-      for (let i = 0; i < WHITELISTED_TEST_ADDRESSES.length; i++) {
-        const whitelistedAddress = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(WHITELISTED_TEST_ADDRESSES[i]);
+      for (let i = 0; i < TEST_ADDRESSES.length; i++) {
+        const whitelistedAddress = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(TEST_ADDRESSES[i]);
         whitelistedAddresses.push(whitelistedAddress);
       }
 
@@ -381,7 +381,7 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail to set whitelisted if msg.sender isn't owner", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(user).setWhitelisted(WHITELISTED_TEST_ADDRESSES))
+      await expect(nomoPlayersDropMechanicContract.connect(user).setWhitelisted(TEST_ADDRESSES))
         .to.be.revertedWith("Ownable: caller is not the owner");
     });
 
@@ -390,8 +390,117 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail to set whitelisted if whitelisted array is over 100", async function () {
-      const exceedingLimitNumberOfAddr = WHITELISTED_TEST_ADDRESSES.slice(0, 101);
+      const exceedingLimitNumberOfAddr = TEST_ADDRESSES.slice(0, 101);
       await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted(exceedingLimitNumberOfAddr)).to.be.revertedWith("Beneficiaries array length must be in the bounds of 1 and 100");
+    });
+  });
+
+  context("for privileged", () => {
+    it("should emit LogPrivilegedSet event", async function () {
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPrivileged([TEST_ADDRESSES[1]])).to.emit(nomoPlayersDropMechanicContract, "LogPrivilegedSet");
+    });
+
+    it("should set privileged addresses", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+
+      let privilegedAddresses = [];
+
+      for (let i = 0; i < TEST_ADDRESSES.length; i++) {
+        const privilegedAddress = await nomoPlayersDropMechanicContract.connect(deployer).privileged(i);
+        privilegedAddresses.push(privilegedAddress);
+      }
+
+      expect(privilegedAddresses.length).to.equal(TEST_ADDRESSES.length);
+    });
+
+    it("must fail to set privileged if msg.sender isn't owner", async function () {
+      await expect(nomoPlayersDropMechanicContract.connect(user).setPrivileged(TEST_ADDRESSES))
+        .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("must fail to set whitelisted if whitelisted array does not have any addresses", async function () {
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPrivileged([])).to.be.revertedWith("Privileged members array length must be in the bounds of 1 and 100");
+    });
+
+    it("must fail to set whitelisted if whitelisted array is over 100", async function () {
+      const exceedingLimitNumberOfAddr = TEST_ADDRESSES.slice(0, 101);
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPrivileged(exceedingLimitNumberOfAddr)).to.be.revertedWith("Privileged members array length must be in the bounds of 1 and 100");
+    });
+  });
+
+  context("for airdrop", () => {
+    it("should execute airdrop", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+
+      await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
+
+      for (let j = 0; j < TEST_ADDRESSES.length; j++) {
+        const currAddress  = TEST_ADDRESSES[j];
+
+        const addressErc721Balance = await erc721Mock.balanceOf(currAddress);
+        expect(addressErc721Balance).to.equal(1);
+
+        const addressClaimedTokens = await nomoPlayersDropMechanicContract.claimedTokens(currAddress);
+        expect(addressClaimedTokens).to.equal(1);
+      }
+    });
+
+    it("must fail if airdrop has been already executed", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await nomoPlayersDropMechanicContract.executeAirdrop();
+      await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Airdrop has been executed");
+    });
+
+    it("must fail to airdrop if tokens are less than privileged users", async function () {
+      // Deploy ERC721Mock, StrategyMock and ERC20Mock, and mint `n` tokens on `user` address who is also deployer of the ERC20Mock contract
+      const { erc721MockTest, addressERC721MockTest, addressStrategyMockTest, addressERC20MockTest } = await deployMockContracts();
+
+      let tokensPerTxMint = 40;
+      const testCollectibleItems = tokensPerTxMint * 2;
+      const leftoversMint = testCollectibleItems % tokensPerTxMint;
+      const loopsMint = (testCollectibleItems - (testCollectibleItems % tokensPerTxMint)) / tokensPerTxMint + 1;
+      let txCounterMint = 0;
+
+      let mintedTokens: string[] = [];
+
+      for (let i = 0; i < testCollectibleItems; i += tokensPerTxMint) {
+        txCounterMint++;
+        if (txCounterMint == loopsMint) { tokensPerTxMint = leftoversMint; }
+        const mintCollectionTx = await erc721MockTest.connect(deployer).mintCollection(tokensPerTxMint);
+        const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
+        mintedTokens = [...mintedTokens, ...getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
+      }
+
+      let mintedTokensShuffled = shuffle(mintedTokens);
+
+      const NomoPlayersDropMechanic_Factory_Test: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
+      const nomoPlayersDropMechanicTestContract = await NomoPlayersDropMechanic_Factory_Test.deploy(
+        addressERC721MockTest,
+        deployerAddress,
+        tokenPrice,
+        maxQuantity,
+        testCollectibleItems) as NomoPlayersDropMechanic;
+      await nomoPlayersDropMechanicTestContract.connect(deployer).deployed();
+
+      await addItemsToContract(mintedTokensShuffled, nomoPlayersDropMechanicTestContract.functions["addTokensToCollection"], "tokens", true);
+
+      await nomoPlayersDropMechanicTestContract.setERC20Address(addressERC20MockTest);
+      await nomoPlayersDropMechanicTestContract.setDaoWalletAddress(daoWalletAddress);
+      await nomoPlayersDropMechanicTestContract.setStrategyContractAddress(addressStrategyMockTest);
+
+      // Set addresses who will be given free ERC721, here privileged addresses are more than the tokens in the collection
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+
+      const nomoPlayersDropMechanicTestAddress: string = nomoPlayersDropMechanicTestContract.address;
+
+      // Set approval for all tokens nomoPlayersDropMechanicTestContract to distribute the items owned by ERC721Mock deployer
+      await erc721MockTest.setApprovalForAll(nomoPlayersDropMechanicTestAddress, true, { from: deployerAddress });
+
+      await expect(nomoPlayersDropMechanicTestContract.executeAirdrop()).to.be.revertedWith("Invalid airdrop parameters");
+    });
+
+    it("must fail to execute airdrop if privileged users aren't set", async function () {
+      await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Invalid airdrop parameters");
     });
   });
 

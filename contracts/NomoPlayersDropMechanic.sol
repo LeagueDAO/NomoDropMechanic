@@ -20,6 +20,8 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     using Address for address;
 
     uint256[] private tokens;
+    address[] public privileged;
+    bool public isAirdropExecuted;
     uint256 public initialTokensLength;
     uint256 public tokenPrice;
     uint256 public maxQuantity;
@@ -38,6 +40,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     RandomGenerator.Random internal randomGenerator;
 
     event LogTokensBought(uint256[] _transferredTokens);
+    event LogTokensAirdropped(uint256[] _airdroppedTokens);
     event LogERC20AddressSet(address _erc20Address);
     event LogStrategyContractAddressSet(address _strategyContractAddress);
     event LogDaoWalletAddressSet(address _daoWalletAddress);
@@ -45,6 +48,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     event LogPresaleDurationSet(uint256 _presaleDuration);
     event LogInitialTokensLengthSet(uint256 _initialTokensLength);
     event LogWhitelistedSet(address[] _whitelisted);
+    event LogPrivilegedSet(address[] _privileged);
     event LogTokensAdded(uint256 length);
 
     modifier isValidAddress(address addr) {
@@ -167,7 +171,10 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * @notice Sets initialTokensLength.
      * @param _initialTokensLength uint256 representing the initial length of the tokens
      */
-    function setInitialTokensLength(uint256 _initialTokensLength) public onlyOwner {
+    function setInitialTokensLength(uint256 _initialTokensLength)
+        public
+        onlyOwner
+    {
         require(_initialTokensLength > 0, "must be above 0!");
         initialTokensLength = _initialTokensLength;
         emit LogInitialTokensLengthSet(initialTokensLength);
@@ -188,6 +195,63 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         }
 
         emit LogWhitelistedSet(beneficiaries);
+    }
+
+    /**
+     * @notice Sets privileged members who can claim free token.
+     * @param members address[] representing the members will be privileged
+     */
+    function setPrivileged(address[] memory members) public onlyOwner {
+        require(
+            members.length > 0 && members.length <= 100,
+            "Privileged members array length must be in the bounds of 1 and 100"
+        );
+
+        for (uint256 i = 0; i < members.length; i++) {
+            privileged.push(members[i]);
+        }
+
+        emit LogPrivilegedSet(members);
+    }
+
+    /**
+     * @notice Transfers ERC721 token to `n` number of privileged users.
+     
+     * @dev Deployer executes airdrop.
+     * NomoPlayersDropMechanic distributes one token to each of the privileged addresses if the requirements are met.
+     *
+     * Requirements:
+     * - the caller must be owner.
+     */
+    function executeAirdrop() public onlyOwner {
+        require(!isAirdropExecuted, "Airdrop has been executed");
+        require(
+            (tokens.length >= privileged.length) && (privileged.length > 0),
+            "Invalid airdrop parameters"
+        );
+        uint256[] memory airdroppedTokens = new uint256[](privileged.length);
+        isAirdropExecuted = true;
+
+        for (uint256 i = 0; i < privileged.length; i++) {
+            claimedTokens[privileged[i]]++;
+            
+            uint256 randomNumberIndex = randomGenerator.randomize(
+                tokens.length
+            );
+
+            uint256 tokenId = tokens[randomNumberIndex];
+            airdroppedTokens[i] = tokenId;
+            tokens[randomNumberIndex] = tokens[tokens.length - 1];
+            tokens.pop();
+
+            IERC721(erc721Address).safeTransferFrom(
+                tokensVault,
+                privileged[i],
+                tokenId
+            );
+        }
+
+        emit LogTokensAirdropped(airdroppedTokens);
     }
 
     /**
