@@ -25,7 +25,6 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     uint256 public initialTokensLength;
     uint256 public tokenPrice;
     uint256 public maxQuantity;
-    uint256 public maxTokensPerWallet;
     address public tokensVault;
     address public daoWalletAddress;
     address public strategyContractAddress;
@@ -62,26 +61,19 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * @param _tokensVault address of the wallet used to store tokensArray
      * @param _tokenPrice to be used for the price
      * @param _maxQuantity to be used for the maximum quantity
-     * @param _maxTokensPerWallet to be used for the maximum tokens per wallet
      */
     constructor(
         address _erc721Address,
         address _tokensVault,
         uint256 _tokenPrice,
-        uint256 _maxQuantity,
-        uint256 _maxTokensPerWallet
+        uint256 _maxQuantity
     ) isValidAddress(_erc721Address) isValidAddress(_tokensVault) {
         require(_tokenPrice > 0, "Token price must be higher than zero");
         require(_maxQuantity > 0, "Maximum quantity must be higher than zero");
-        require(
-            _maxTokensPerWallet > 0,
-            "Maximum tokens per wallet must be higher than zero"
-        );
         erc721Address = _erc721Address;
         tokensVault = _tokensVault;
         tokenPrice = _tokenPrice;
         maxQuantity = _maxQuantity;
-        maxTokensPerWallet = _maxTokensPerWallet;
     }
 
     function addTokensToCollection(uint256[] memory tokensArray)
@@ -232,9 +224,7 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         uint256[] memory airdroppedTokens = new uint256[](privileged.length);
         isAirdropExecuted = true;
 
-        for (uint256 i = 0; i < privileged.length; i++) {
-            claimedTokens[privileged[i]]++;
-            
+        for (uint256 i = 0; i < privileged.length; i++) { 
             uint256 randomNumberIndex = randomGenerator.randomize(
                 tokens.length
             );
@@ -274,16 +264,11 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
             "Invalid quantity"
         );
         require(tokens.length >= quantity, "Insufficient available quantity");
-        require(
-            (claimedTokens[msg.sender] + quantity) <= maxTokensPerWallet,
-            "Maximum tokens per wallet exceeded"
-        );
 
         uint256[] memory transferredTokens = new uint256[](quantity);
         uint256[] memory tokenPrices = new uint256[](quantity);
         uint256 fraction = quantity.mul(tokenPrice).div(5);
         uint256 strategyAmount = fraction.mul(4);
-        claimedTokens[msg.sender] += quantity;
 
         for (uint256 i = 0; i < quantity; i++) {
             uint256 randomNumberIndex = randomGenerator.randomize(
