@@ -33,7 +33,6 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     uint256 public presaleStartDate;
     uint256 public presaleDuration;
     mapping(address => bool) public whitelisted;
-    mapping(address => uint256) public claimedTokens;
     mapping(uint256 => bool) public addedTokens;
 
     RandomGenerator.Random internal randomGenerator;
