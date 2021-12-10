@@ -7,6 +7,7 @@ import 'hardhat-abi-exporter';
 import 'solidity-coverage';
 import 'hardhat-gas-reporter';
 import 'hardhat-contract-sizer';
+import "@appliedblockchain/chainlink-plugins-fund-link";
 
 const lazyImport = async (module: any) => {
     return await import(module);
@@ -31,13 +32,20 @@ task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to privileged users")
 // Some of the settings should be defined in `./config.js`.
 const cfg: HardhatUserConfig = {
     solidity: {
-        version: '0.8.9',
-        settings: {
-            optimizer: {
-                enabled: true,
-                runs: 200
+        compilers: [
+            {
+                version: "0.8.9"
+            },
+            {
+                version: "0.6.6"
+            },
+            {
+                version: "0.6.0"
+            },
+            {
+                version: "0.4.24"
             }
-        }
+        ]
     },
     defaultNetwork: 'hardhat',
     networks: config.networks,

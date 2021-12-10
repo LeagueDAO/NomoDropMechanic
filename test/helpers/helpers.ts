@@ -1,6 +1,7 @@
-import { ContractReceipt, ContractTransaction } from 'ethers';
+import { ContractReceipt, ContractTransaction, Signer } from 'ethers';
 import { ethers } from "hardhat";
-import { NomoPlayersDropMechanic } from '../../typechain';
+import { NomoPlayersDropMechanic, VRFCoordinatorMock } from '../../typechain';
+import { testRandomNumber } from './constants';
 
 export function getTokensFromEventArgs(txReceipt: ContractReceipt, eventName: string) {
     let storage: string[] = [];
@@ -55,4 +56,11 @@ export async function addItemsToContract(itemsArray: (string | number)[], fn: ((
 
         if (!showLogs) console.log(`Add ${type} tx: ${txCounter} has been executed successfully`);
     }
+}
+
+export async function simulateVRFCallback(nomoPlayersDropMechanicContract: NomoPlayersDropMechanic, vrfCoordinator: VRFCoordinatorMock, signer: Signer) {
+    const nomoPlayersDropMechanicAddress = nomoPlayersDropMechanicContract.address;
+    await nomoPlayersDropMechanicContract.connect(signer).getRandomValue();
+    const requestId = await nomoPlayersDropMechanicContract.lastRequestId();
+    await vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nomoPlayersDropMechanicAddress);
 }

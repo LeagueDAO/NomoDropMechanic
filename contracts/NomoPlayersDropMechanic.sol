@@ -7,16 +7,19 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./RandomGenerator.sol";
+import "./RandomNumberConsumer.sol";
 import "./interfaces/INomoVault.sol";
 
 /**
  * @title Contract for distributing ERC721 tokens.
  * The purpose is to give the ability for users to buy with ERC20, randomly chosen tokens from the collection.
  */
-contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
+contract NomoPlayersDropMechanic is
+    Ownable,
+    ReentrancyGuard,
+    RandomNumberConsumer
+{
     using SafeMath for uint256;
-    using RandomGenerator for RandomGenerator.Random;
     using Address for address;
 
     uint256[] private tokens;
@@ -32,10 +35,10 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     address public erc721Address;
     uint256 public presaleStartDate;
     uint256 public presaleDuration;
+    bytes32 public lastRequestId;
     mapping(address => bool) public whitelisted;
     mapping(uint256 => bool) public addedTokens;
-
-    RandomGenerator.Random internal randomGenerator;
+    mapping(address => uint256) private addressToRandomNumber;
 
     event LogTokensBought(uint256[] _transferredTokens);
     event LogTokensAirdropped(uint256[] _airdroppedTokens);
@@ -48,6 +51,8 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     event LogWhitelistedSet(address[] _whitelisted);
     event LogPrivilegedSet(address[] _privileged);
     event LogTokensAdded(uint256 length);
+    event LogRandomNumberRequested(address from);
+    event LogRandomNumberSaved(address from);
 
     modifier isValidAddress(address addr) {
         require(addr != address(0), "Not a valid address!");
@@ -65,8 +70,16 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
         address _erc721Address,
         address _tokensVault,
         uint256 _tokenPrice,
-        uint256 _maxQuantity
-    ) isValidAddress(_erc721Address) isValidAddress(_tokensVault) {
+        uint256 _maxQuantity,
+        address _vrfCoordinator,
+        address _LINKToken,
+        bytes32 _keyHash,
+        uint256 _fee
+    )
+        isValidAddress(_erc721Address)
+        isValidAddress(_tokensVault)
+        RandomNumberConsumer(_vrfCoordinator, _LINKToken, _keyHash, _fee)
+    {
         require(_tokenPrice > 0, "Token price must be higher than zero");
         require(_maxQuantity > 0, "Maximum quantity must be higher than zero");
         erc721Address = _erc721Address;
@@ -206,6 +219,29 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Requests random number from Chainlink VRF.
+     */
+    function getRandomValue() public {
+        require(
+            block.timestamp > presaleStartDate,
+            "Current timestamp isn't on sale"
+        );
+
+        lastRequestId = getRandomNumber();
+
+        emit LogRandomNumberRequested(msg.sender);
+    }
+
+    /**
+     *  @notice This is a callback method which is getting called in RandomConsumerNumber.sol
+     */
+    function saveRandomNumber(address from, uint256 n) internal override {
+        addressToRandomNumber[from] = n;
+
+        emit LogRandomNumberSaved(from);
+    }
+
+    /**
      * @notice Transfers ERC721 token to `n` number of privileged users.
      
      * @dev Deployer executes airdrop.
@@ -220,17 +256,23 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
             (tokens.length >= privileged.length) && (privileged.length > 0),
             "Invalid airdrop parameters"
         );
+        require(
+            addressToRandomNumber[msg.sender] != 0,
+            "Random number can't be zero, please request a random number or wait for its fulfillment!"
+        );
+
+        uint256[] memory randomNumbers = expand(
+            addressToRandomNumber[msg.sender],
+            privileged.length
+        );
         uint256[] memory airdroppedTokens = new uint256[](privileged.length);
         isAirdropExecuted = true;
 
-        for (uint256 i = 0; i < privileged.length; i++) { 
-            uint256 randomNumberIndex = randomGenerator.randomize(
-                tokens.length
-            );
-
-            uint256 tokenId = tokens[randomNumberIndex];
+        for (uint256 i = 0; i < privileged.length; i++) {
+            uint256 randomNumber = randomNumbers[i] % tokens.length;
+            uint256 tokenId = tokens[randomNumber];
             airdroppedTokens[i] = tokenId;
-            tokens[randomNumberIndex] = tokens[tokens.length - 1];
+            tokens[randomNumber] = tokens[tokens.length - 1];
             tokens.pop();
 
             IERC721(erc721Address).safeTransferFrom(
@@ -257,25 +299,32 @@ contract NomoPlayersDropMechanic is Ownable, ReentrancyGuard {
      * - the caller must have sufficient ERC20 tokens.
      */
     function buyTokens(uint256 quantity) private nonReentrant {
-        require(msg.sender == tx.origin, "Invalid caller!");
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
         );
         require(tokens.length >= quantity, "Insufficient available quantity");
+        require(
+            addressToRandomNumber[msg.sender] != 0,
+            "Random number can't be zero, please request a random number or wait for its fulfillment!"
+        );
 
+        uint256[] memory randomNumbers = expand(
+            addressToRandomNumber[msg.sender],
+            quantity
+        );
         uint256[] memory transferredTokens = new uint256[](quantity);
         uint256[] memory tokenPrices = new uint256[](quantity);
         uint256 fraction = quantity.mul(tokenPrice).div(5);
         uint256 strategyAmount = fraction.mul(4);
 
+        addressToRandomNumber[msg.sender] = 0;
+
         for (uint256 i = 0; i < quantity; i++) {
-            uint256 randomNumberIndex = randomGenerator.randomize(
-                tokens.length
-            );
-            uint256 tokenId = tokens[randomNumberIndex];
+            uint256 randomIndex = randomNumbers[i] % tokens.length;
+            uint256 tokenId = tokens[randomIndex];
             transferredTokens[i] = tokenId;
-            tokens[randomNumberIndex] = tokens[tokens.length - 1];
+            tokens[randomIndex] = tokens[tokens.length - 1];
             tokens.pop();
 
             tokenPrices[i] = strategyAmount.div(quantity);
