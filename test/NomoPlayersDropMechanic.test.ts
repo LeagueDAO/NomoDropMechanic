@@ -495,6 +495,11 @@ describe("NomoPlayersDropMechanic tests", function () {
       }
     });
 
+    it("must fail if random number is 0", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Random number can't be zero, please request a random number or wait for its fulfillment!");
+    });
+
     it("must fail if airdrop has been already executed", async function () {
       await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
@@ -700,6 +705,10 @@ describe("NomoPlayersDropMechanic tests", function () {
       expect(tokenVaultQtyAfter).to.equal(collectibleItems - tokensToBeBought);
       expect(userTokensBefore).to.equal(0);
       expect(userTokensAfter).to.equal(tokensToBeBought);
+    });
+
+    it("must fail if random number is 0", async function () {
+      await expect(nomoPlayersDropMechanicContract.buyTokensOnSale(1)).to.be.revertedWith("Random number can't be zero, please request a random number or wait for its fulfillment!");
     });
 
     it("must fail to buy tokens on sale before the actual sale has started", async function () {
