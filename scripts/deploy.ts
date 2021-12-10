@@ -28,6 +28,10 @@ export async function deployNomoPlayersDropMechanic() {
   const tokensVault = coerceUndefined(process.env.TOKENS_VAULT);
   const presaleStartDate = coerceUndefined(process.env.PRESALE_START_DATE);
   const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
+  const vrfCoordinator = coerceUndefined(process.env.VRF_COORDINATOR);
+  const linkToken = coerceUndefined(process.env.LINK_TOKEN);
+  const keyhash = coerceUndefined(process.env.KEYHASH);
+  const fee = coerceUndefined(process.env.FEE);
   const whitelisted = config.WHITE_LISTED;
   const privileged = config.PRIVILEGED;
 
@@ -40,7 +44,11 @@ export async function deployNomoPlayersDropMechanic() {
     erc721Address,
     tokensVault,
     price,
-    maxQuantity, { gasLimit: ethers.BigNumber.from(GAS_LIMIT) }) as NomoPlayersDropMechanic;
+    maxQuantity,
+    vrfCoordinator,
+    linkToken,
+    keyhash,
+    fee, { gasLimit: ethers.BigNumber.from(GAS_LIMIT) }) as NomoPlayersDropMechanic;
 
   console.log(`Deploying NomoPlayersDropMechanic at address: ${nomoPlayersDropMechanicContract.address} please wait...\n`);
 
@@ -96,6 +104,10 @@ export async function deployNomoPlayersDropMechanic() {
     daoWalletAddress,
     price,
     maxQuantity,
+    vrfCoordinator,
+    linkToken,
+    keyhash,
+    fee,
     collectionLength,
     presaleStartDate,
     presaleDuration,
