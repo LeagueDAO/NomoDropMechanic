@@ -2,7 +2,7 @@ const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
 import fs from 'fs';
 import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
-import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, VRFCoordinatorMock, LinkToken } from '../typechain';
+import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, LinkToken } from '../typechain';
 import { tokenPrice, collectibleItems, maxQuantity, testRandomNumber, testAddress, zeroAddress, TWO_MINS_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, TEST_ADDRESSES } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract, simulateVRFCallback } from './helpers/helpers';
 
@@ -27,11 +27,11 @@ describe("NomoPlayersDropMechanic tests", function () {
   let erc721Mock: ERC721Mock;
   let strategyMock: StrategyMock;
   let erc20Mock: ERC20Mock;
+  let linkToken: any;
+  let vrfCoordinator: any;
   let nomoPlayersDropMechanicContract: NomoPlayersDropMechanic;
   let nomoPlayersDropMechanicAddress: string;
-  let linkToken: any;
   let linkTokenAddress: string;
-  let vrfCoordinator: any;
   let vrfCoordinatorAddress: string;
 
   async function deployMockContracts(mintQty: number = 1000) {
@@ -459,13 +459,13 @@ describe("NomoPlayersDropMechanic tests", function () {
 
   context("for random number", () => {
     it("should request random number", async function () {
-      await nomoPlayersDropMechanicContract.connect(user).getRandomValue();
-      const requestId = await nomoPlayersDropMechanicContract.lastRequestId();
-      await expect(vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nomoPlayersDropMechanicAddress)).to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberSaved");
+      await expect(nomoPlayersDropMechanicContract.connect(user).getRandomValue()).to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberRequested");
     });
 
     it("should save random number", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(user).getRandomValue()).to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberRequested");
+      await nomoPlayersDropMechanicContract.connect(user).getRandomValue();
+      const requestId = await nomoPlayersDropMechanicContract.lastRequestId();
+      await expect(vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nomoPlayersDropMechanicAddress)).to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberSaved");
     });
 
     it("must fail to get random number if token sale hasn't started", async function () {
