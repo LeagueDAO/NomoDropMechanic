@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
-import "hardhat/console.sol";
 
 contract RandomNumberConsumer is VRFConsumerBase {
     bytes32 internal keyHash;
