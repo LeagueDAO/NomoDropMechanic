@@ -59,6 +59,14 @@ contract NomoPlayersDropMechanic is
         _;
     }
 
+    modifier isValidRandomNumber() {
+        require(
+            addressToRandomNumber[msg.sender] != 0,
+            "Invalid random number"
+        );
+        _;
+    }
+
     /**
      * @notice Construct and initialize the contract.
      * @param _erc721Address address of the associated ERC721 contract instance
@@ -250,15 +258,11 @@ contract NomoPlayersDropMechanic is
      * Requirements:
      * - the caller must be owner.
      */
-    function executeAirdrop() public onlyOwner {
+    function executeAirdrop() public onlyOwner isValidRandomNumber {
         require(!isAirdropExecuted, "Airdrop has been executed");
         require(
             (tokens.length >= privileged.length) && (privileged.length > 0),
             "Invalid airdrop parameters"
-        );
-        require(
-            addressToRandomNumber[msg.sender] != 0,
-            "Random number can't be zero, please request a random number or wait for its fulfillment!"
         );
 
         uint256[] memory randomNumbers = expand(
@@ -298,16 +302,12 @@ contract NomoPlayersDropMechanic is
      * Requirements:
      * - the caller must have sufficient ERC20 tokens.
      */
-    function buyTokens(uint256 quantity) private nonReentrant {
+    function buyTokens(uint256 quantity) private nonReentrant isValidRandomNumber {
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
         );
         require(tokens.length >= quantity, "Insufficient available quantity");
-        require(
-            addressToRandomNumber[msg.sender] != 0,
-            "Random number can't be zero, please request a random number or wait for its fulfillment!"
-        );
 
         uint256[] memory randomNumbers = expand(
             addressToRandomNumber[msg.sender],
