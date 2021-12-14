@@ -174,8 +174,6 @@ describe("NomoPlayersDropMechanic tests", function () {
       const loopsBuy = (collectibleItems - (collectibleItems % tokensPerTxBuy)) / tokensPerTxBuy + 1;
       let txCounterBuy = 0;
 
-      await hre.run("fund-link", { contract: nomoPlayersDropMechanicAddress, linkaddress: linkTokenAddress });
-
       for (let i = 0; i < collectibleItems; i += tokensPerTxBuy) {
         txCounterBuy++;
         if (txCounterBuy == loopsBuy) { tokensPerTxBuy = leftoversToBuy; }
@@ -807,8 +805,6 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       // Approve nomoPlayersDropMechanicTestContract to spend user's tokens
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-
-      await hre.run("fund-link", { contract: nomoPlayersDropMechanicAddress, linkaddress: linkTokenAddress });
 
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought))
