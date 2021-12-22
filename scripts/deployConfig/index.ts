@@ -1,6 +1,6 @@
 import { shuffle } from '../../test/helpers/helpers';
 import { WHITE_LISTED } from './whitelistedAddresses';
-import { PRIVILEGED } from './privilegedAddresses';
+import { ELIGIBLE } from './eligibleAddresses';
 
 const coerceUndefined = (environmentVariableValue: any) =>
   environmentVariableValue !== "undefined"
@@ -9,4 +9,4 @@ const coerceUndefined = (environmentVariableValue: any) =>
 
 export const generateCollection = (collectionLength: number) =>  Array.from({ length: collectionLength }, (_, i) => i + 1);
 
-export default { generateCollection, shuffle, coerceUndefined, WHITE_LISTED, PRIVILEGED };
+export default { generateCollection, shuffle, coerceUndefined, WHITE_LISTED, ELIGIBLE };

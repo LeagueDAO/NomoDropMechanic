@@ -1,10 +1,10 @@
 const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
 import fs from 'fs';
-import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
+import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, LinkToken } from '../typechain';
 import { tokenPrice, collectibleItems, maxQuantity, testRandomNumber, testAddress, zeroAddress, TWO_MINS_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, TEST_ADDRESSES } from './helpers/constants';
-import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract, simulateVRFCallback } from './helpers/helpers';
+import { getItemsFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract, simulateVRFCallback } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
 let user: Signer, userAddress: string;
@@ -12,6 +12,9 @@ let daoWallet: Signer, daoWalletAddress: string;
 
 const keyHash = "0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4";
 const fee = '1';
+const eligibleAddressesCount = 270;
+const privilegedAddressesCount = 117;
+const eligibleAddresses = TEST_ADDRESSES.slice(0, eligibleAddressesCount);
 
 async function setupSigners() {
   const accounts = await ethers.getSigners();
@@ -99,7 +102,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       if (txCounterMint == loopsMint) { tokensPerTxMint = leftoversMint; }
       const mintCollectionTx = await erc721Mock.connect(deployer).mintCollection(tokensPerTxMint);
       const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
-      mintedTokens = [...mintedTokens, ...getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
+      mintedTokens = [...mintedTokens, ...getItemsFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
     }
 
     let mintedTokensShuffled: (string | number)[] = shuffle(mintedTokens);
@@ -379,36 +382,36 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
-  context("for privileged", () => {
-    it("should emit LogPrivilegedSet event", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPrivileged([TEST_ADDRESSES[1]])).to.emit(nomoPlayersDropMechanicContract, "LogPrivilegedSet");
+  context("for eligible", () => {
+    it("should emit LogEligibleSet event", async function () {
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setEligible([TEST_ADDRESSES[1]])).to.emit(nomoPlayersDropMechanicContract, "LogEligibleSet");
     });
 
-    it("should set privileged addresses", async function () {
-      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+    it("should set eligible addresses", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
 
-      let privilegedAddresses = [];
+      let eligibleAddresses = [];
 
       for (let i = 0; i < TEST_ADDRESSES.length; i++) {
-        const privilegedAddress = await nomoPlayersDropMechanicContract.connect(deployer).privileged(i);
-        privilegedAddresses.push(privilegedAddress);
+        const eligibleAddress = await nomoPlayersDropMechanicContract.connect(deployer).eligible(i);
+        eligibleAddresses.push(eligibleAddress);
       }
 
-      expect(privilegedAddresses.length).to.equal(TEST_ADDRESSES.length);
+      expect(eligibleAddresses.length).to.equal(TEST_ADDRESSES.length);
     });
 
-    it("must fail to set privileged if msg.sender isn't owner", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(user).setPrivileged(TEST_ADDRESSES))
+    it("must fail to set eligible if msg.sender isn't owner", async function () {
+      await expect(nomoPlayersDropMechanicContract.connect(user).setEligible(TEST_ADDRESSES))
         .to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it("must fail to set whitelisted if whitelisted array does not have any addresses", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPrivileged([])).to.be.revertedWith("Privileged members array length must be in the bounds of 1 and 100");
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setEligible([])).to.be.revertedWith("Eligible members array length must be in the bounds of 1 and 100");
     });
 
     it("must fail to set whitelisted if whitelisted array is over 100", async function () {
       const exceedingLimitNumberOfAddr = TEST_ADDRESSES.slice(0, 101);
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPrivileged(exceedingLimitNumberOfAddr)).to.be.revertedWith("Privileged members array length must be in the bounds of 1 and 100");
+      await expect(nomoPlayersDropMechanicContract.connect(deployer).setEligible(exceedingLimitNumberOfAddr)).to.be.revertedWith("Eligible members array length must be in the bounds of 1 and 100");
     });
   });
 
@@ -436,65 +439,112 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
-  context.only("for filtering users", () => {
+  context("for filtering users", () => {
     it("should filter users", async function () {
-      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await addItemsToContract(eligibleAddresses, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
-      await nomoPlayersDropMechanicContract.connect(deployer).filterEligible(5);
 
-      console.log(await nomoPlayersDropMechanicContract.privileged(4));
+      const filterEligibleTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(deployer).filterEligible(privilegedAddressesCount);
+      const filterEligibleReceipt: ContractReceipt = await filterEligibleTx.wait();
 
-      // for (let j = 0; j < TEST_ADDRESSES.length; j++) {
-      //   const currAddress = TEST_ADDRESSES[j];
+      const selectedUsers = getItemsFromEventArgs(filterEligibleReceipt, "LogSelectedUsers")
 
-      //   const addressErc721Balance = await erc721Mock.balanceOf(currAddress);
-      //   expect(addressErc721Balance).to.equal(1);
-      // }
+      expect(selectedUsers.length).to.be.equal(privilegedAddressesCount);
     });
 
-    it("must fail if user")
+    it("must user tries to execute `filterEligible` instead of owner", async function () {
+      await addItemsToContract(eligibleAddresses, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
+      const fakePrivilegedMembersNumber = eligibleAddresses.length + 1;
+      await expect(nomoPlayersDropMechanicContract.connect(user).filterEligible(fakePrivilegedMembersNumber)).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("must fail if random number is 0", async function () {
+      await addItemsToContract(eligibleAddresses, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
+      const fakePrivilegedMembersNumber = eligibleAddresses.length + 1;
+      await expect(nomoPlayersDropMechanicContract.filterEligible(fakePrivilegedMembersNumber)).to.be.revertedWith("Invalid random number");
+    });
+
+    it("must fail if filtering has been executed and random number is zero", async function () {
+      await addItemsToContract(eligibleAddresses, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.filterEligible(privilegedAddressesCount);
+      await expect(nomoPlayersDropMechanicContract.filterEligible(privilegedAddressesCount)).to.be.revertedWith("Invalid random number");
+    });
+
+    it("must fail if eligible members are less than privileged", async function () {
+      await addItemsToContract(eligibleAddresses, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+
+      const fakePrivilegedCount = eligibleAddressesCount + 1;
+
+      await expect(nomoPlayersDropMechanicContract.filterEligible(fakePrivilegedCount)).to.be.revertedWith("Eligible members must be more than privileged");
+    });
   });
 
   context("for airdrop", () => {
     it("should execute airdrop", async function () {
-      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await addItemsToContract(eligibleAddresses, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
 
-      await nomoPlayersDropMechanicContract.connect(deployer).filterEligible(5);
+      const filterEligibleTx: ContractTransaction = await nomoPlayersDropMechanicContract.connect(deployer).filterEligible(privilegedAddressesCount);
+      const filterEligibleReceipt: ContractReceipt = await filterEligibleTx.wait();
+
+      const selectedUsers = getItemsFromEventArgs(filterEligibleReceipt, "LogSelectedUsers");
+
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
 
       await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
 
-      for (let j = 0; j < TEST_ADDRESSES.length; j++) {
-        const currAddress = TEST_ADDRESSES[j];
-
+      for (let j = 0; j < eligibleAddresses.length; j++) {
+        const currAddress = eligibleAddresses[j];
         const addressErc721Balance = await erc721Mock.balanceOf(currAddress);
-        expect(addressErc721Balance).to.equal(1);
+
+        if (selectedUsers.includes(currAddress)) {
+          expect(addressErc721Balance).to.equal(1);
+        } else {
+          expect(addressErc721Balance).to.equal(0);
+        }
       }
     });
 
     it("must fail if random number is 0", async function () {
-      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
+      await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Invalid random number");
+    });
+
+    it("must fail if airdrop has been already and random number is zero", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
+
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).filterEligible(privilegedAddressesCount);
+
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
+
       await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Invalid random number");
     });
 
     it("must fail if airdrop has been already executed", async function () {
-      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).filterEligible(privilegedAddressesCount);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
       await nomoPlayersDropMechanicContract.executeAirdrop();
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
       await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Airdrop has been executed");
     });
 
-    it("must fail to airdrop if tokens are less than privileged users", async function () {
-      // Set addresses who will be given free ERC721, here privileged addresses are more than the tokens in the collection
+    it("must fail to airdrop if tokens are less than eligible users", async function () {
+      // Set addresses who will be given free ERC721, here eligible addresses are more than the tokens in the collection
       const TEST_ADDRESSES_EXTRA = TEST_ADDRESSES.slice();
       const TEST_ADDRESSES_DOUBLED = TEST_ADDRESSES_EXTRA.concat(TEST_ADDRESSES);
 
-      await addItemsToContract(TEST_ADDRESSES_DOUBLED, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await addItemsToContract(TEST_ADDRESSES_DOUBLED, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", true);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
       await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Invalid airdrop parameters");
     });
 
-    it("must fail to execute airdrop if privileged users aren't set", async function () {
+    it("must fail to execute airdrop if eligible users aren't set", async function () {
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
       await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Invalid airdrop parameters");
     });
@@ -735,7 +785,7 @@ describe("NomoPlayersDropMechanic tests", function () {
         if (txCounterMint == loopsMint) { tokensPerTxMint = leftoversMint; }
         const mintCollectionTx = await erc721MockTest.connect(deployer).mintCollection(tokensPerTxMint);
         const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
-        mintedTokens = [...mintedTokens, ...getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
+        mintedTokens = [...mintedTokens, ...getItemsFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
       }
 
       let mintedTokensShuffled = shuffle(mintedTokens);

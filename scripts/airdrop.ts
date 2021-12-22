@@ -16,7 +16,7 @@ export async function executeAirdrop() {
   const nomoPlayersDropMechanicFactory = await ethers.getContractFactory("NomoPlayersDropMechanic");
   const nomoPlayersDropMechanic = await nomoPlayersDropMechanicFactory.attach(contracts.nomoPlayersDropMechanic);
 
-  console.log(`Air-dropping ERC721 to privileged users...`);
+  console.log(`Air-dropping ERC721 to eligible users...`);
 
   try {
     const airdropTx = await nomoPlayersDropMechanic.executeAirdrop({ gasLimit: ethers.BigNumber.from(GAS_LIMIT) });

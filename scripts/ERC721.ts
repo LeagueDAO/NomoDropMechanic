@@ -3,7 +3,7 @@ import { ContractReceipt } from 'ethers';
 import { ERC721Mock } from '../typechain';
 import { ContractFactory } from 'ethers';
 import dotenv from 'dotenv';
-import { getTokensFromEventArgs, } from '../test/helpers/helpers';
+import { getItemsFromEventArgs, } from '../test/helpers/helpers';
 
 dotenv.config();
 
@@ -34,7 +34,7 @@ export async function deployVerifyERC721() {
     //     if (txCounterMint == loopsMint) { tokensPerTxMint = leftoversMint; }
     //     const mintCollectionTx = await erc721Mock.connect(deployer).mintCollection(tokensPerTxMint);
     //     const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
-    //     mintedTokens = [...mintedTokens, ...getTokensFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
+    //     mintedTokens = [...mintedTokens, ...getItemsFromEventArgs(txReceiptCollectible, "LogCollectionMinted")];
     // }
 
     // console.log("Minted tokens:\n");

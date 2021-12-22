@@ -23,7 +23,7 @@ contract NomoPlayersDropMechanic is
     using Address for address;
 
     uint256[] private tokens;
-    address[] public privileged;
+    address[] public eligible;
     bool public isAirdropExecuted;
     uint256 public initialTokensLength;
     uint256 public tokenPrice;
@@ -49,11 +49,11 @@ contract NomoPlayersDropMechanic is
     event LogPresaleDurationSet(uint256 _presaleDuration);
     event LogInitialTokensLengthSet(uint256 _initialTokensLength);
     event LogWhitelistedSet(address[] _whitelisted);
-    event LogPrivilegedSet(address[] _privileged);
+    event LogEligibleSet(address[] _eligible);
     event LogTokensAdded(uint256 length);
     event LogRandomNumberRequested(address from);
     event LogRandomNumberSaved(address from);
-    event LogUnselectedUsers(address[] _unselected);
+    event LogSelectedUsers(address[] privileged);
 
     modifier isValidAddress(address addr) {
         require(addr != address(0), "Not a valid address!");
@@ -211,20 +211,20 @@ contract NomoPlayersDropMechanic is
     }
 
     /**
-     * @notice Sets privileged members who can claim free token.
-     * @param members address[] representing the members will be privileged
+     * @notice Sets eligible members who can claim free token.
+     * @param members address[] representing the members will be eligible
      */
-    function setPrivileged(address[] memory members) public onlyOwner {
+    function setEligible(address[] memory members) public onlyOwner {
         require(
             members.length > 0 && members.length <= 100,
-            "Privileged members array length must be in the bounds of 1 and 100"
+            "Eligible members array length must be in the bounds of 1 and 100"
         );
 
         for (uint256 i = 0; i < members.length; i++) {
-            privileged.push(members[i]);
+            eligible.push(members[i]);
         }
 
-        emit LogPrivilegedSet(members);
+        emit LogEligibleSet(members);
     }
 
     /**
@@ -251,22 +251,26 @@ contract NomoPlayersDropMechanic is
     }
 
     /**
-     * @notice Filters `privileged` users array.
+     * @notice Filters `eligible` users array.
      
      * @dev Deployer executes filtration.
      *
-     * @param eligibleMembers number of members who will be air-dropped with ERC721
+     * @param privilegedMembers number of members who will be air-dropped one ERC721
      *
      * Requirements:
      * - the caller must be owner.
      */
-    function filterEligible(uint256 eligibleMembers) public {
+    function filterEligible(uint256 privilegedMembers)
+        public
+        onlyOwner
+        isValidRandomNumber
+    {
         require(
-            privileged.length > eligibleMembers,
-            "Eligible members must be less than privileged"
+            eligible.length > privilegedMembers,
+            "Eligible members must be more than privileged"
         );
 
-        uint256 usersToRemove = privileged.length - eligibleMembers;
+        uint256 usersToRemove = eligible.length - privilegedMembers;
 
         uint256[] memory randomNumbers = expand(
             addressToRandomNumber[msg.sender],
@@ -275,22 +279,24 @@ contract NomoPlayersDropMechanic is
 
         address[] memory unselectedUsers = new address[](usersToRemove);
 
+        addressToRandomNumber[msg.sender] = 0;
+
         for (uint256 i = 0; i < usersToRemove; i++) {
-            uint256 randomNumber = randomNumbers[i] % privileged.length;
-            address addr = privileged[randomNumber];
+            uint256 randomNumber = randomNumbers[i] % eligible.length;
+            address addr = eligible[randomNumber];
             unselectedUsers[i] = addr;
-            privileged[randomNumber] = privileged[privileged.length - 1];
-            privileged.pop();
+            eligible[randomNumber] = eligible[eligible.length - 1];
+            eligible.pop();
         }
 
-        emit LogUnselectedUsers(unselectedUsers);
+        emit LogSelectedUsers(eligible);
     }
 
     /**
-     * @notice Transfers ERC721 token to `n` number of privileged users.
+     * @notice Transfers ERC721 token to `n` number of eligible users.
      
      * @dev Deployer executes airdrop.
-     * NomoPlayersDropMechanic distributes one token to each of the privileged addresses if the requirements are met.
+     * NomoPlayersDropMechanic distributes one token to each of the eligible addresses if the requirements are met.
      *
      * Requirements:
      * - the caller must be owner.
@@ -298,18 +304,21 @@ contract NomoPlayersDropMechanic is
     function executeAirdrop() public onlyOwner isValidRandomNumber {
         require(!isAirdropExecuted, "Airdrop has been executed");
         require(
-            (tokens.length >= privileged.length) && (privileged.length > 0),
+            (tokens.length >= eligible.length) && (eligible.length > 0),
             "Invalid airdrop parameters"
         );
 
         uint256[] memory randomNumbers = expand(
             addressToRandomNumber[msg.sender],
-            privileged.length
+            eligible.length
         );
-        uint256[] memory airdroppedTokens = new uint256[](privileged.length);
+        uint256[] memory airdroppedTokens = new uint256[](eligible.length);
+
         isAirdropExecuted = true;
 
-        for (uint256 i = 0; i < privileged.length; i++) {
+        addressToRandomNumber[msg.sender] = 0;
+
+        for (uint256 i = 0; i < eligible.length; i++) {
             uint256 randomNumber = randomNumbers[i] % tokens.length;
             uint256 tokenId = tokens[randomNumber];
             airdroppedTokens[i] = tokenId;
@@ -318,7 +327,7 @@ contract NomoPlayersDropMechanic is
 
             IERC721(erc721Address).safeTransferFrom(
                 tokensVault,
-                privileged[i],
+                eligible[i],
                 tokenId
             );
         }

@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { NomoPlayersDropMechanic, VRFCoordinatorMock } from '../../typechain';
 import { testRandomNumber } from './constants';
 
-export function getTokensFromEventArgs(txReceipt: ContractReceipt, eventName: string) {
+export function getItemsFromEventArgs(txReceipt: ContractReceipt, eventName: string) {
     let storage: string[] = [];
     for (const event of txReceipt.events as Array<any>) {
         if (event.event == eventName) {

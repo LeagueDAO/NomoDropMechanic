@@ -24,7 +24,7 @@ task("verify-nomoPlayersDropMechanic", "Verify already deployed contract")
         await verifyNomoPlayersDropMechanic();
     })
 
-task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to privileged users")
+task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to eligible users")
     .setAction(async () => {
         const { executeAirdrop } = await lazyImport('./scripts/airdrop');
         await executeAirdrop();

@@ -33,7 +33,7 @@ export async function deployNomoPlayersDropMechanic() {
   const keyhash = coerceUndefined(process.env.KEYHASH);
   const fee = coerceUndefined(process.env.FEE);
   const whitelisted = config.WHITE_LISTED;
-  const privileged = config.PRIVILEGED;
+  const eligible = config.ELIGIBLE;
 
   const mintedTokens = config.generateCollection(collectionLength);
   //! shuffled so we do not know the actual order inside
@@ -65,9 +65,9 @@ export async function deployNomoPlayersDropMechanic() {
   await setInitialTokensLengthTx.wait();
   console.log(`Initial tokens length has been set to ${collectionLength}`);
 
-  // Set privileged addresses
-  await addItemsToContract(privileged, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", false);
-  console.log(`Privileged addresses have been set!`);
+  // Set eligible addresses
+  await addItemsToContract(eligible, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", false);
+  console.log(`Eligible addresses have been set!`);
 
   //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
   // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
@@ -91,7 +91,7 @@ export async function deployNomoPlayersDropMechanic() {
     presaleDuration,
     mintedTokens: [...shuffled],
     whitelisted,
-    privileged
+    eligible
   }, null, 2));
 
   console.log('Done!');
