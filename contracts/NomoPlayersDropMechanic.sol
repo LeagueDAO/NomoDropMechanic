@@ -276,15 +276,12 @@ contract NomoPlayersDropMechanic is
             addressToRandomNumber[msg.sender],
             usersToRemove
         );
-
-        address[] memory unselectedUsers = new address[](usersToRemove);
-
+        
         addressToRandomNumber[msg.sender] = 0;
 
         for (uint256 i = 0; i < usersToRemove; i++) {
             uint256 randomNumber = randomNumbers[i] % eligible.length;
             address addr = eligible[randomNumber];
-            unselectedUsers[i] = addr;
             eligible[randomNumber] = eligible[eligible.length - 1];
             eligible.pop();
         }
