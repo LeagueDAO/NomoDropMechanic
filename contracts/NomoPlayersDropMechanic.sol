@@ -53,6 +53,7 @@ contract NomoPlayersDropMechanic is
     event LogTokensAdded(uint256 length);
     event LogRandomNumberRequested(address from);
     event LogRandomNumberSaved(address from);
+    event LogUnselectedUsers(address[] _unselected);
 
     modifier isValidAddress(address addr) {
         require(addr != address(0), "Not a valid address!");
@@ -250,6 +251,42 @@ contract NomoPlayersDropMechanic is
     }
 
     /**
+     * @notice Filters `privileged` users array.
+     
+     * @dev Deployer executes filtration.
+     *
+     * @param eligibleMembers number of members who will be air-dropped with ERC721
+     *
+     * Requirements:
+     * - the caller must be owner.
+     */
+    function filterEligible(uint256 eligibleMembers) public {
+        require(
+            privileged.length > eligibleMembers,
+            "Eligible members must be less than privileged"
+        );
+
+        uint256 usersToRemove = privileged.length - eligibleMembers;
+
+        uint256[] memory randomNumbers = expand(
+            addressToRandomNumber[msg.sender],
+            usersToRemove
+        );
+
+        address[] memory unselectedUsers = new address[](usersToRemove);
+
+        for (uint256 i = 0; i < usersToRemove; i++) {
+            uint256 randomNumber = randomNumbers[i] % privileged.length;
+            address addr = privileged[randomNumber];
+            unselectedUsers[i] = addr;
+            privileged[randomNumber] = privileged[privileged.length - 1];
+            privileged.pop();
+        }
+
+        emit LogUnselectedUsers(unselectedUsers);
+    }
+
+    /**
      * @notice Transfers ERC721 token to `n` number of privileged users.
      
      * @dev Deployer executes airdrop.
@@ -302,7 +339,11 @@ contract NomoPlayersDropMechanic is
      * Requirements:
      * - the caller must have sufficient ERC20 tokens.
      */
-    function buyTokens(uint256 quantity) private nonReentrant isValidRandomNumber {
+    function buyTokens(uint256 quantity)
+        private
+        nonReentrant
+        isValidRandomNumber
+    {
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"

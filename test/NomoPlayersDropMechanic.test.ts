@@ -436,10 +436,32 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
+  context.only("for filtering users", () => {
+    it("should filter users", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).filterEligible(5);
+
+      console.log(await nomoPlayersDropMechanicContract.privileged(4));
+
+      // for (let j = 0; j < TEST_ADDRESSES.length; j++) {
+      //   const currAddress = TEST_ADDRESSES[j];
+
+      //   const addressErc721Balance = await erc721Mock.balanceOf(currAddress);
+      //   expect(addressErc721Balance).to.equal(1);
+      // }
+    });
+
+    it("must fail if user")
+  });
+
   context("for airdrop", () => {
     it("should execute airdrop", async function () {
       await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+
+      await nomoPlayersDropMechanicContract.connect(deployer).filterEligible(5);
+
       await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
 
       for (let j = 0; j < TEST_ADDRESSES.length; j++) {

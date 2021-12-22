@@ -39,6 +39,8 @@ export async function deployNomoPlayersDropMechanic() {
   //! shuffled so we do not know the actual order inside
   const shuffled = shuffle(mintedTokens)
 
+  // todo check collection length before deploy if === 90
+
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
   const nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
     erc721Address,
@@ -55,30 +57,6 @@ export async function deployNomoPlayersDropMechanic() {
   await nomoPlayersDropMechanicContract.deployed()
 
   console.log('Setting initial values...\n');
-
-  const setErc20tx = await nomoPlayersDropMechanicContract.setERC20Address(erc20Address, { gasLimit: GAS_LIMIT });
-  await setErc20tx.wait();
-  console.log(`ERC20 contract has been set at address ${erc20Address}`);
-
-  const setDAOTx = await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress, { gasLimit: GAS_LIMIT });
-  await setDAOTx.wait()
-  console.log(`DAO contract has been set at address ${daoWalletAddress}`);
-
-  const setStrategyTx = await nomoPlayersDropMechanicContract.setStrategyContractAddress(strategyContractAddress, { gasLimit: GAS_LIMIT });
-  await setStrategyTx.wait();
-  console.log(`Strategy contract has been set at address ${strategyContractAddress}`);
-
-  // Set whitelisted addresses
-  await addItemsToContract(whitelisted, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", false);
-  console.log(`Whitelisted addresses have been set!`);
-
-  const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
-  await setPresaleStartTx.wait()
-  console.log(`Presale start date set on unix: ${presaleStartDate}`);
-
-  const setPresaleDurationTx = await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
-  await setPresaleDurationTx.wait();
-  console.log(`Presale duration has been set to ${presaleDuration} seconds`);
 
   // Set tokens
   await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);

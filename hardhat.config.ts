@@ -29,6 +29,16 @@ task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to privileged users")
         const { executeAirdrop } = await lazyImport('./scripts/airdrop');
         await executeAirdrop();
     })
+
+
+
+////////////////////
+task("deploy-verify-ERC721", "Deploys and verifies ERC721 MOCK contract")
+    .setAction(async () => {
+        const { deployVerifyERC721 } = await lazyImport('./scripts/ERC721');
+        await deployVerifyERC721();
+    });
+
 // Some of the settings should be defined in `./config.js`.
 const cfg: HardhatUserConfig = {
     solidity: {

@@ -2,6 +2,10 @@ import hre from 'hardhat';
 import fs from 'fs';
 
 export async function verifyNomoPlayersDropMechanic(): Promise<void> {
+    const [deployer] = await hre.ethers.getSigners();
+
+    console.log('Verifying contracts with the account:', deployer.address);
+
     const contracts = JSON.parse(
         fs.readFileSync(`./contracts.json`, 'utf-8')
     );
@@ -30,6 +34,8 @@ export async function verifyNomoPlayersDropMechanic(): Promise<void> {
     } catch (error: any) {
         logError('NomoPlayersDropMechanic', error.message);
     }
+
+    console.log(`Account balance:  ${(await deployer.getBalance()).toString()} \n`);
 
 }
 
