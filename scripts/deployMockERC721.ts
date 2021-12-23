@@ -31,7 +31,6 @@ export async function deployVerifyERC721() {
 
     for (let i = 0; i < collectibleItems; i += tokensPerTxMint) {
         txCounterMint++;
-        console.log(i, "+40")
         if (txCounterMint == loopsMint) { tokensPerTxMint = leftoversMint; }
         const mintCollectionTx = await erc721Mock.connect(deployer).mintCollection(tokensPerTxMint);
         const txReceiptCollectible: ContractReceipt = await mintCollectionTx.wait();
