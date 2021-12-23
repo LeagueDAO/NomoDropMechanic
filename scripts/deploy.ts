@@ -18,16 +18,11 @@ export async function deployNFTAirdropMechanic() {
   console.log('Deploying contracts with the account:', deployer.address);
   console.log(`Account balance:  ${(await deployer.getBalance()).toString()} \n`);
 
-  const erc20Address = coerceUndefined(process.env.DAI_ADDRESS);
   const price = coerceUndefined(process.env.TOKEN_PRICE);
   const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH)
   const maxQuantity = coerceUndefined(process.env.MAX_QUANTITY);
   const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
-  const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
-  const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
   const tokensVault = coerceUndefined(process.env.TOKENS_VAULT);
-  const presaleStartDate = coerceUndefined(process.env.PRESALE_START_DATE);
-  const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
   const vrfCoordinator = coerceUndefined(process.env.VRF_COORDINATOR);
   const linkToken = coerceUndefined(process.env.LINK_TOKEN);
   const keyhash = coerceUndefined(process.env.KEYHASH);
@@ -82,10 +77,7 @@ export async function deployNFTAirdropMechanic() {
     network: hre.network.name,
     nftAirdropMechanic: nftAirdropMechanicContract.address,
     erc721Address,
-    erc20Address,
     tokensVault,
-    strategyContractAddress,
-    daoWalletAddress,
     price,
     maxQuantity,
     vrfCoordinator,
@@ -93,8 +85,6 @@ export async function deployNFTAirdropMechanic() {
     keyhash,
     fee,
     collectionLength,
-    presaleStartDate,
-    presaleDuration,
     mintedTokens: [...tokenIds],
     whitelisted,
     eligible

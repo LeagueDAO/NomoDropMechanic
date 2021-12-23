@@ -17,11 +17,7 @@ export const networks: NetworksUserConfig = {
         accounts: [`0x${process.env.PRIVATE_KEY}`]
     },
     rinkeby: {
-        url: `https://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_ID}/eth/rinkeby`,
-        accounts: [`0x${process.env.PRIVATE_KEY}`],
-    },
-    ropsten: {
-        url: `https://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_ID}/eth/rinkeby`,
+        url: `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
         accounts: [`0x${process.env.PRIVATE_KEY}`],
     }
 };

@@ -20,7 +20,7 @@ export async function requestRandomValue() {
 
   try {
     const requestRandomValueTx = await nftAirdropMechanic.getRandomValue({ gasLimit: ethers.BigNumber.from(GAS_LIMIT) });
-    requestRandomValueTx.wait();
+    await requestRandomValueTx.wait();
   } catch (error) {
     console.log(error)
   }

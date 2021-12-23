@@ -1,12 +1,18 @@
 import hre, { ethers } from "hardhat";
 import fs from 'fs';
 import { getItemsFromEventArgs } from '../test/helpers/helpers';
+import config from './deployConfig/index';
+import dotenv from 'dotenv';
+
+const { coerceUndefined } = config;
+
+dotenv.config();
 
 const GAS_LIMIT = '8000000'
 
 export async function filterEligible() {
     const [deployer] = await hre.ethers.getSigners();
-
+    const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH);
     console.log('Filtering with the account:', deployer.address);
     console.log(`Account balance:  ${(await deployer.getBalance()).toString()} \n`);
 
@@ -19,7 +25,12 @@ export async function filterEligible() {
 
     console.log(`Filter eligible members array...`);
 
-    const privilegedAddressesCount = 117;
+    const privilegedAddressesCount = 7;
+
+    if (collectionLength != privilegedAddressesCount) {
+        console.log("Collection length must be equal to privileged addresses!");
+        return;
+    }
 
     try {
         const filterEligibleTx = await nftAirdropMechanic.filterEligible(privilegedAddressesCount, { gasLimit: ethers.BigNumber.from(GAS_LIMIT) });

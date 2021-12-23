@@ -24,6 +24,12 @@ task("verify-nftAirdropMechanic", "Verify already deployed contract")
         await verifyNFTAirdropMechanic();
     })
 
+task("erc721-setApprovalForAll", "Request random value")
+    .setAction(async () => {
+        const { setApprovalForAll } = await lazyImport('./scripts/setApprovalForAll');
+        await setApprovalForAll();
+    })
+
 task("airdrop-requestRandomValue", "Request random value")
     .setAction(async () => {
         const { requestRandomValue } = await lazyImport('./scripts/requestRandomValue');

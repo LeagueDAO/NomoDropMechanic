@@ -10,6 +10,7 @@
     "contracts:migrate:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat deploy-nftAirdropMechanic --network rinkeby",
     "contracts:verify:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat verify-nftAirdropMechanic --network rinkeby",
     "contracts:erc721Mock:rinkeby": "env-cmd --silent -f .env.dev npx hardhat deploy-verify-erc721 --network rinkeby",
+    "contracts:setApproval:rinkeby": "env-cmd --silent -f .env.dev npx hardhat erc721-setApprovalForAll --network rinkeby",
     "contracts:random:rinkeby": "env-cmd --silent -f .env.dev npx hardhat airdrop-requestRandomValue --network rinkeby",
     "contracts:filter:rinkeby": "env-cmd --silent -f .env.dev npx hardhat airdrop-filterEligible --network rinkeby",
     "contracts:airdrop:rinkeby": "env-cmd --silent -f .env.dev npx hardhat airdrop-execute --network rinkeby",
@@ -18,9 +19,9 @@
     "contracts:airdrop:ropsten": "env-cmd --silent -f .env.dev npx hardhat airdrop-nftAirdropMechanic --network ropsten",
     "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nftAirdropMechanic --network mainnet",
     "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nftAirdropMechanic --network mainnet",
-    "contracts:random:prod": "env-cmd --silent -f .env.dev npx hardhat airdrop-requestRandomValue --network mainnet",
-    "contracts:airdrop:prod": "env-cmd --silent -f .env.dev npx hardhat airdrop-nftAirdropMechanic --network mainnet",
-    "contracts:filter:prod": "env-cmd --silent -f .env.dev npx hardhat airdrop-filterEligible --network mainnet"
+    "contracts:random:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-requestRandomValue --network mainnet",
+    "contracts:airdrop:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-nftAirdropMechanic --network mainnet",
+    "contracts:filter:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-filterEligible --network mainnet"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
