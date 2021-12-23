@@ -22,7 +22,7 @@ export async function setApprovalForAll() {
     const ERC721_Factory = await hre.ethers.getContractFactory("ERC721Mock");
     const erc721 = await ERC721_Factory.attach(ERC721_ADDRESS);
 
-    console.log('Approving contract with the account:', deployer.address);
+    console.log('Approving contract...');
 
     try {
         const approvalTx = await erc721.setApprovalForAll(contracts.nftAirdropMechanic, true);
