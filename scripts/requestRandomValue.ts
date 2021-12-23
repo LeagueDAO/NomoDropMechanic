@@ -3,10 +3,10 @@ import fs from 'fs';
 
 const GAS_LIMIT = '8000000'
 
-export async function executeAirdrop() {
+export async function requestRandomValue() {
   const [deployer] = await hre.ethers.getSigners();
 
-  console.log('Executing airdrop with the account:', deployer.address);
+  console.log('Getting random value with the account:', deployer.address);
   console.log(`Account balance:  ${(await deployer.getBalance()).toString()} \n`);
 
   const contracts = JSON.parse(
@@ -16,15 +16,15 @@ export async function executeAirdrop() {
   const nftAirdropMechanic_Factory = await ethers.getContractFactory("NFTAirdropMechanic");
   const nftAirdropMechanic = await nftAirdropMechanic_Factory.attach(contracts.nftAirdropMechanic);
 
-  console.log(`Air-dropping ERC721 to eligible users...`);
+  console.log(`Requesting random value from Chainlink VRF...`);
 
   try {
-    const airdropTx = await nftAirdropMechanic.executeAirdrop({ gasLimit: ethers.BigNumber.from(GAS_LIMIT) });
-    await airdropTx.wait();
+    const requestRandomValueTx = await nftAirdropMechanic.getRandomValue({ gasLimit: ethers.BigNumber.from(GAS_LIMIT) });
+    requestRandomValueTx.wait();
   } catch (error) {
-   console.log(error)
+    console.log(error)
   }
 
-  console.log("Airdrop was executed successfully!\n")
-  console.log(`Account balance after airdrop:  ${(await deployer.getBalance()).toString()} \n`);
+  console.log("Random value was requested successfully!\n")
+  console.log(`Account balance after requesting random value:  ${(await deployer.getBalance()).toString()} \n`);
 }
