@@ -14,7 +14,7 @@ import "./interfaces/INomoVault.sol";
  * @title Contract for distributing ERC721 tokens.
  * The purpose is to give the ability for users to buy with ERC20, randomly chosen tokens from the collection.
  */
-contract NomoPlayersDropMechanic is
+contract NFTAirdropMechanic is
     Ownable,
     ReentrancyGuard,
     RandomNumberConsumer
@@ -281,7 +281,6 @@ contract NomoPlayersDropMechanic is
 
         for (uint256 i = 0; i < usersToRemove; i++) {
             uint256 randomNumber = randomNumbers[i] % eligible.length;
-            address addr = eligible[randomNumber];
             eligible[randomNumber] = eligible[eligible.length - 1];
             eligible.pop();
         }
@@ -293,7 +292,7 @@ contract NomoPlayersDropMechanic is
      * @notice Transfers ERC721 token to `n` number of eligible users.
      
      * @dev Deployer executes airdrop.
-     * NomoPlayersDropMechanic distributes one token to each of the eligible addresses if the requirements are met.
+     * NFTAirdropMechanic distributes one token to each of the eligible addresses if the requirements are met.
      *
      * Requirements:
      * - the caller must be owner.
@@ -336,9 +335,9 @@ contract NomoPlayersDropMechanic is
      * @notice Distributes the requested quantity by the user and transfers the funds to DAO wallet address and Strategy contract.
 
      * @dev Buyer sends particular message value and requests quantity.
-     * NomoPlayersDropMechanic distributes the tokens to the buyer's address if the requirements are met.
-     * NomoPlayersDropMechanic is approved to have disposal of the collection minted on the tokensVault's address.
-     * NomoPlayersDropMechanic transfers 20% of the ERC20 tokens to DAO wallet address and 80% to Strategy contract.
+     * NFTAirdropMechanic distributes the tokens to the buyer's address if the requirements are met.
+     * NFTAirdropMechanic is approved to have disposal of the collection minted on the tokensVault's address.
+     * NFTAirdropMechanic transfers 20% of the ERC20 tokens to DAO wallet address and 80% to Strategy contract.
      *
      * @param quantity quantity of tokens which user requests to buy
      *

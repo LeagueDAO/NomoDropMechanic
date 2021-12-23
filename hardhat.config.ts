@@ -13,24 +13,22 @@ const lazyImport = async (module: any) => {
     return await import(module);
 }
 
-task("deploy-nomoPlayersDropMechanic", "Deploys a NomoPlayersDropMechanic contract")
+task("deploy-nftAirdropMechanic", "Deploys a NFTAirdropMechanic contract")
     .setAction(async taskArgs => {
-        const { deployNomoPlayersDropMechanic } = await lazyImport('./scripts/deploy');
-        await deployNomoPlayersDropMechanic();
+        const { deployNFTAirdropMechanic } = await lazyImport('./scripts/deploy');
+        await deployNFTAirdropMechanic();
     });
-task("verify-nomoPlayersDropMechanic", "Verify already deployed contract")
+task("verify-nftAirdropMechanic", "Verify already deployed contract")
     .setAction(async () => {
-        const { verifyNomoPlayersDropMechanic } = await lazyImport('./scripts/verify');
-        await verifyNomoPlayersDropMechanic();
+        const { verifyNFTAirdropMechanic } = await lazyImport('./scripts/verify');
+        await verifyNFTAirdropMechanic();
     })
 
-task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to eligible users")
+task("airdrop-nftAirdropMechanic", "Airdrop ERC721 to eligible users")
     .setAction(async () => {
         const { executeAirdrop } = await lazyImport('./scripts/airdrop');
         await executeAirdrop();
     })
-
-
 
 ////////////////////
 task("deploy-verify-ERC721", "Deploys and verifies ERC721 MOCK contract")
@@ -38,6 +36,7 @@ task("deploy-verify-ERC721", "Deploys and verifies ERC721 MOCK contract")
         const { deployVerifyERC721 } = await lazyImport('./scripts/ERC721');
         await deployVerifyERC721();
     });
+////////////////////
 
 // Some of the settings should be defined in `./config.js`.
 const cfg: HardhatUserConfig = {
@@ -58,7 +57,7 @@ const cfg: HardhatUserConfig = {
     networks: config.networks,
     etherscan: config.etherscan,
     abiExporter: {
-        only: ['NomoPlayersDropMechanic', 'RandomGenerator'],
+        only: ['NFTAirdropMechanic', 'RandomGenerator'],
         clear: true,
     },
     gasReporter: {

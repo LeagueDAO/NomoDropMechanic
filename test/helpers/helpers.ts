@@ -1,6 +1,6 @@
 import { ContractReceipt, ContractTransaction, Signer } from 'ethers';
 import { ethers } from "hardhat";
-import { NomoPlayersDropMechanic, VRFCoordinatorMock } from '../../typechain';
+import { NFTAirdropMechanic, VRFCoordinatorMock } from '../../typechain';
 import { testRandomNumber } from './constants';
 
 export function getItemsFromEventArgs(txReceipt: ContractReceipt, eventName: string) {
@@ -58,9 +58,9 @@ export async function addItemsToContract(itemsArray: (string | number)[], fn: ((
     }
 }
 
-export async function simulateVRFCallback(nomoPlayersDropMechanicContract: NomoPlayersDropMechanic, vrfCoordinator: VRFCoordinatorMock, signer: Signer) {
-    const nomoPlayersDropMechanicAddress = nomoPlayersDropMechanicContract.address;
-    await nomoPlayersDropMechanicContract.connect(signer).getRandomValue();
-    const requestId = await nomoPlayersDropMechanicContract.lastRequestId();
-    await vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nomoPlayersDropMechanicAddress);
+export async function simulateVRFCallback(nftAirdropMechanicContract: NFTAirdropMechanic, vrfCoordinator: VRFCoordinatorMock, signer: Signer) {
+    const nftAirdropMechanicAddress = nftAirdropMechanicContract.address;
+    await nftAirdropMechanicContract.connect(signer).getRandomValue();
+    const requestId = await nftAirdropMechanicContract.lastRequestId();
+    await vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nftAirdropMechanicAddress);
 }
