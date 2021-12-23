@@ -19,6 +19,7 @@
     "contracts:airdrop:ropsten": "env-cmd --silent -f .env.dev npx hardhat airdrop-nftAirdropMechanic --network ropsten",
     "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nftAirdropMechanic --network mainnet",
     "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nftAirdropMechanic --network mainnet",
+    "contracts:setApproval:prod": "env-cmd --silent -f .env.prod npx hardhat erc721-setApprovalForAll --network mainnet",
     "contracts:random:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-requestRandomValue --network mainnet",
     "contracts:airdrop:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-nftAirdropMechanic --network mainnet",
     "contracts:filter:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-filterEligible --network mainnet"
