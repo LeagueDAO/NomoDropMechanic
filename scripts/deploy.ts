@@ -32,18 +32,20 @@ export async function deployNFTAirdropMechanic() {
   const linkToken = coerceUndefined(process.env.LINK_TOKEN);
   const keyhash = coerceUndefined(process.env.KEYHASH);
   const fee = coerceUndefined(process.env.FEE);
-  const expectedEligibleCount = coerceUndefined(process.env.ELIGIBLE_COUNT);;
+  const expectedEligibleCount = coerceUndefined(process.env.ELIGIBLE_COUNT);
   const whitelisted = config.WHITE_LISTED;
   const eligible = config.ELIGIBLE;
+  const tokenIds = config.TOKEN_IDS;
 
   if (eligible.length != expectedEligibleCount) {
-    console.log("Eligible count is not " + eligible.length)
-    return 
+    console.log(`Eligible count isn't ${expectedEligibleCount}!`);
+    return;
   }
 
-  const mintedTokens = config.generateCollection(collectionLength);
-  //! shuffled so we do not know the actual order inside
-  const shuffled = shuffle(mintedTokens)
+  if (tokenIds.length != collectionLength) {
+    console.log(`Tokens count isn't ${collectionLength}!`);
+    return;
+  }
 
   const NFTAirdropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NFTAirdropMechanic");
   const nftAirdropMechanicContract = await NFTAirdropMechanic_Factory.deploy(
@@ -63,7 +65,7 @@ export async function deployNFTAirdropMechanic() {
   console.log('Setting initial values...\n');
 
   // Set tokens
-  await addItemsToContract(shuffled, nftAirdropMechanicContract.functions["addTokensToCollection"], "tokens", false);
+  await addItemsToContract(tokenIds, nftAirdropMechanicContract.functions["addTokensToCollection"], "tokens", false);
 
   const setInitialTokensLengthTx = await nftAirdropMechanicContract.setInitialTokensLength(collectionLength)
   await setInitialTokensLengthTx.wait();
@@ -93,7 +95,7 @@ export async function deployNFTAirdropMechanic() {
     collectionLength,
     presaleStartDate,
     presaleDuration,
-    mintedTokens: [...shuffled],
+    mintedTokens: [...tokenIds],
     whitelisted,
     eligible
   }, null, 2));

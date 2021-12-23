@@ -11,23 +11,10 @@ export const networks: NetworksUserConfig = {
     },
     hardhat: {
     },
-    // Mumbai Testnet
-    mumbai: {
-        url: "https://rpc-mumbai.maticvigil.com",
-        chainId: 80001,
-        accounts: [`0x${process.env.PRIVATE_KEY}`],
-        gas: 'auto',
-        gasPrice: 'auto',
-        gasMultiplier: 1.5,
-    },
-    // Matic Mainnet
+    // Mainnet
     mainnet: {
-        url: "https://rpc-mainnet.maticvigil.com/",
-        chainId: 137,
-        accounts: [`0x${process.env.PRIVATE_KEY}`],
-        gas: 'auto',
-        gasPrice: 'auto',
-        gasMultiplier: 1.5,
+        url: `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`,
+        accounts: [`0x${process.env.PRIVATE_KEY}`]
     },
     rinkeby: {
         url: `https://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_ID}/eth/rinkeby`,
