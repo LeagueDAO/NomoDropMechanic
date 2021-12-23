@@ -1,6 +1,6 @@
 import hre, { ethers } from "hardhat";
 import fs from 'fs';
-import { NomoPlayersDropMechanic } from '../typechain';
+import { NFTAirdropMechanic } from '../typechain';
 import { ContractFactory } from 'ethers';
 import { addItemsToContract } from '../test/helpers/helpers';
 import config from './deployConfig/index';
@@ -11,7 +11,7 @@ const GAS_LIMIT = '8000000'
 
 dotenv.config();
 
-export async function deployNomoPlayersDropMechanic() {
+export async function deployNFTAirdropMechanic() {
   await hre.run('compile');
   const [deployer] = await hre.ethers.getSigners();
 
@@ -32,17 +32,21 @@ export async function deployNomoPlayersDropMechanic() {
   const linkToken = coerceUndefined(process.env.LINK_TOKEN);
   const keyhash = coerceUndefined(process.env.KEYHASH);
   const fee = coerceUndefined(process.env.FEE);
+  const expectedEligibleCount = coerceUndefined(process.env.ELIGIBLE_COUNT);;
   const whitelisted = config.WHITE_LISTED;
   const eligible = config.ELIGIBLE;
+
+  if (eligible.length != expectedEligibleCount) {
+    console.log("Eligible count is not " + eligible.length)
+    return 
+  }
 
   const mintedTokens = config.generateCollection(collectionLength);
   //! shuffled so we do not know the actual order inside
   const shuffled = shuffle(mintedTokens)
 
-  // todo check collection length before deploy if === 90
-
-  const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
-  const nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
+  const NFTAirdropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NFTAirdropMechanic");
+  const nftAirdropMechanicContract = await NFTAirdropMechanic_Factory.deploy(
     erc721Address,
     tokensVault,
     price,
@@ -50,31 +54,31 @@ export async function deployNomoPlayersDropMechanic() {
     vrfCoordinator,
     linkToken,
     keyhash,
-    fee, { gasLimit: ethers.BigNumber.from(GAS_LIMIT) }) as NomoPlayersDropMechanic;
+    fee, { gasLimit: ethers.BigNumber.from(GAS_LIMIT) }) as NFTAirdropMechanic;
 
-  console.log(`Deploying NomoPlayersDropMechanic at address: ${nomoPlayersDropMechanicContract.address} please wait...\n`);
+  console.log(`Deploying NFTAirdropMechanic at address: ${nftAirdropMechanicContract.address} please wait...\n`);
 
-  await nomoPlayersDropMechanicContract.deployed()
+  await nftAirdropMechanicContract.deployed()
 
   console.log('Setting initial values...\n');
 
   // Set tokens
-  await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);
+  await addItemsToContract(shuffled, nftAirdropMechanicContract.functions["addTokensToCollection"], "tokens", false);
 
-  const setInitialTokensLengthTx = await nomoPlayersDropMechanicContract.setInitialTokensLength(collectionLength)
+  const setInitialTokensLengthTx = await nftAirdropMechanicContract.setInitialTokensLength(collectionLength)
   await setInitialTokensLengthTx.wait();
   console.log(`Initial tokens length has been set to ${collectionLength}`);
 
   // Set eligible addresses
-  await addItemsToContract(eligible, nomoPlayersDropMechanicContract.functions["setEligible"], "addresses", false);
+  await addItemsToContract(eligible, nftAirdropMechanicContract.functions["setEligible"], "addresses", false);
   console.log(`Eligible addresses have been set!`);
 
-  //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
-  // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
+  //! After deploy of the NFTAirdropMechanic contract, give approval for all tokens in the ERC721 contract to NFTAirdropMechanic contract
+  // await ERC721.setApprovalForAll(nftAirdropMechanicContract.address, true, { from: tokensVault });
 
   fs.writeFileSync('./contracts.json', JSON.stringify({
     network: hre.network.name,
-    nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
+    nftAirdropMechanic: nftAirdropMechanicContract.address,
     erc721Address,
     erc20Address,
     tokensVault,

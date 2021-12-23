@@ -1,7 +1,7 @@
 import hre from 'hardhat';
 import fs from 'fs';
 
-export async function verifyNomoPlayersDropMechanic(): Promise<void> {
+export async function verifyNFTAirdropMechanic(): Promise<void> {
     const [deployer] = await hre.ethers.getSigners();
 
     console.log('Verifying contracts with the account:', deployer.address);
@@ -16,10 +16,10 @@ export async function verifyNomoPlayersDropMechanic(): Promise<void> {
         );
     }
 
-    //verify NomoPlayersDropMechanic contract
+    //verify NFTAirdropMechanic contract
     try {
         await hre.run('verify:verify', {
-            address: contracts.nomoPlayersDropMechanic,
+            address: contracts.nftAirdropMechanic,
             constructorArguments: [
                 contracts.erc721Address,
                 contracts.tokensVault,
@@ -32,7 +32,7 @@ export async function verifyNomoPlayersDropMechanic(): Promise<void> {
             ],
         });
     } catch (error: any) {
-        logError('NomoPlayersDropMechanic', error.message);
+        logError('NFTAirdropMechanic', error.message);
     }
 
     console.log(`Account balance:  ${(await deployer.getBalance()).toString()} \n`);

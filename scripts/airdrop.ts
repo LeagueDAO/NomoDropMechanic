@@ -13,16 +13,16 @@ export async function executeAirdrop() {
     fs.readFileSync(`./contracts.json`, 'utf-8')
   );
 
-  const nomoPlayersDropMechanicFactory = await ethers.getContractFactory("NomoPlayersDropMechanic");
-  const nomoPlayersDropMechanic = await nomoPlayersDropMechanicFactory.attach(contracts.nomoPlayersDropMechanic);
+  const nftAirdropMechanic_Factory = await ethers.getContractFactory("NFTAirdropMechanic");
+  const nftAirdropMechanic = await nftAirdropMechanic_Factory.attach(contracts.nftAirdropMechanic);
 
   console.log(`Air-dropping ERC721 to eligible users...`);
 
   try {
-    const airdropTx = await nomoPlayersDropMechanic.executeAirdrop({ gasLimit: ethers.BigNumber.from(GAS_LIMIT) });
+    const airdropTx = await nftAirdropMechanic.executeAirdrop({ gasLimit: ethers.BigNumber.from(GAS_LIMIT) });
     airdropTx.wait();
   } catch (error) {
-    logError('NomoPlayersDropMechanic Airdrop', error.message);
+    logError('NFTAirdropMechanic Airdrop', error.message);
   }
 
   console.log("Airdrop was executed successfully!\n")
