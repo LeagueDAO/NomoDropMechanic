@@ -8,8 +8,6 @@ const { coerceUndefined } = config;
 
 dotenv.config();
 
-const GAS_LIMIT = '8000000'
-
 export async function filterEligible() {
     const [deployer] = await hre.ethers.getSigners();
     const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH);
@@ -25,7 +23,7 @@ export async function filterEligible() {
 
     console.log(`Filter eligible members array...`);
 
-    const privilegedAddressesCount = 7;
+    const privilegedAddressesCount = 117;
 
     if (collectionLength != privilegedAddressesCount) {
         console.log("Collection length must be equal to privileged addresses!");
@@ -33,7 +31,7 @@ export async function filterEligible() {
     }
 
     try {
-        const filterEligibleTx = await nftAirdropMechanic.filterEligible(privilegedAddressesCount, { gasLimit: ethers.BigNumber.from(GAS_LIMIT) });
+        const filterEligibleTx = await nftAirdropMechanic.filterEligible(privilegedAddressesCount);
         const filterEligibleReceipt = await filterEligibleTx.wait();
         const selectedUsers = getItemsFromEventArgs(filterEligibleReceipt, "LogSelectedUsers");
 

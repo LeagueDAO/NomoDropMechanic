@@ -1,8 +1,6 @@
 import hre, { ethers } from "hardhat";
 import fs from 'fs';
 
-const GAS_LIMIT = '8000000'
-
 export async function executeAirdrop() {
   const [deployer] = await hre.ethers.getSigners();
 
@@ -19,7 +17,7 @@ export async function executeAirdrop() {
   console.log(`Air-dropping ERC721 to eligible users...`);
 
   try {
-    const airdropTx = await nftAirdropMechanic.executeAirdrop({ gasLimit: ethers.BigNumber.from(GAS_LIMIT) });
+    const airdropTx = await nftAirdropMechanic.executeAirdrop();
     await airdropTx.wait();
   } catch (error) {
    console.log(error)

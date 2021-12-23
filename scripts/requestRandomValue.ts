@@ -1,8 +1,6 @@
 import hre, { ethers } from "hardhat";
 import fs from 'fs';
 
-const GAS_LIMIT = '8000000'
-
 export async function requestRandomValue() {
   const [deployer] = await hre.ethers.getSigners();
 
@@ -19,7 +17,7 @@ export async function requestRandomValue() {
   console.log(`Requesting random value from Chainlink VRF...`);
 
   try {
-    const requestRandomValueTx = await nftAirdropMechanic.getRandomValue({ gasLimit: ethers.BigNumber.from(GAS_LIMIT) });
+    const requestRandomValueTx = await nftAirdropMechanic.getRandomValue();
     await requestRandomValueTx.wait();
   } catch (error) {
     console.log(error)

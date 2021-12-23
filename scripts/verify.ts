@@ -23,8 +23,6 @@ export async function verifyNFTAirdropMechanic(): Promise<void> {
             constructorArguments: [
                 contracts.erc721Address,
                 contracts.tokensVault,
-                contracts.price,
-                contracts.maxQuantity,
                 contracts.vrfCoordinator,
                 contracts.linkToken,
                 contracts.keyhash,
