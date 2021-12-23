@@ -251,9 +251,9 @@ contract NFTAirdropMechanic is
     }
 
     /**
-     * @notice Filters `eligible` users array.
+     * @notice Filters `eligible` users array in randomized way with Chainlink VRF.
      
-     * @dev Deployer executes filtration.
+     * @dev Deployer executes filtration with Chainlink VRF.
      *
      * @param privilegedMembers number of members who will be air-dropped one ERC721
      *
