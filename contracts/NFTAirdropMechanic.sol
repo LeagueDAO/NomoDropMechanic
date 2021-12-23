@@ -259,6 +259,9 @@ contract NFTAirdropMechanic is
      *
      * Requirements:
      * - the caller must be owner.
+     * - random number must different than zero
+     * - eligible members must be more than the privileged
+     *
      */
     function filterEligible(uint256 privilegedMembers)
         public

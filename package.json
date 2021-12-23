@@ -19,11 +19,6 @@
     "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nftAirdropMechanic --network mainnet",
     "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nftAirdropMechanic --network mainnet",
     "contracts:airdrop:prod": "env-cmd --silent -f .env.dev npx hardhat airdrop-nftAirdropMechanic --network mainnet",
-
-
-    "erc721:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat deploy-verify-ERC721 --network rinkeby",
-    "erc721:dev:mumbai": "env-cmd --silent -f .env.dev npx hardhat deploy-verify-ERC721 --network mumbai"
-
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
