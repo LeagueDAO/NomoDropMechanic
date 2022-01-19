@@ -29,7 +29,6 @@ describe('RandomNumberConsumer', async function () {
         const tx_receipt = await transaction.wait(1)
         const requestId = tx_receipt.events[2].topics[1]
 
-        console.log("requestId: ", requestId)
         expect(requestId).to.not.be.null
     }).timeout(2 * 60 * 1000);
 })
