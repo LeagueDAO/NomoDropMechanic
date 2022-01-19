@@ -59,7 +59,7 @@ contract RandomNumberConsumer is VRFConsumerBase {
      * Derives n more random numbers from that number
      */
     function expand(uint256 randomValue, uint256 n)
-        public
+        internal
         pure
         returns (uint256[] memory expandedValues)
     {

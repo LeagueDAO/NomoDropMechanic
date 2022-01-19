@@ -1,10 +1,11 @@
 const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
 import fs from 'fs';
-import { BigNumber, Signer, ContractFactory, ContractReceipt } from 'ethers';
+import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
 import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, LinkToken } from '../typechain';
 import { tokenPrice, collectibleItems, maxQuantity, testRandomNumber, testAddress, zeroAddress, TWO_MINS_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, TEST_ADDRESSES } from './helpers/constants';
 import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract, simulateVRFCallback } from './helpers/helpers';
+import { PRIVILEGED } from "../scripts/deployConfig/privilegedAddresses";
 
 let deployer: Signer, deployerAddress: string;
 let user: Signer, userAddress: string;
@@ -131,7 +132,6 @@ describe("NomoPlayersDropMechanic tests", function () {
     await nomoPlayersDropMechanicContract.setERC20Address(addressERC20Mock);
     await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress);
     await nomoPlayersDropMechanicContract.setStrategyContractAddress(addressStrategyMock);
-    await nomoPlayersDropMechanicContract.setWhitelisted([userAddress]);
 
     await erc721Mock.setApprovalForAll(nomoPlayersDropMechanicAddress, true, { from: deployerAddress });
   });
@@ -273,57 +273,6 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
   });
 
-  context("for presale start date", () => {
-    it("should set presale start date", async function () {
-      const timestamp = await getBlockTimestamp();
-      const TWO_DAYS = ONE_HOUR * 24 * 2;
-      const unixStartDate = timestamp + TWO_DAYS;
-
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
-      const presaleStartDate = await nomoPlayersDropMechanicContract.connect(deployer).presaleStartDate();
-      expect(unixStartDate).to.equal(presaleStartDate)
-    });
-
-    it("should emit LogPresaleStartDateSet event", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogPresaleStartDateSet");
-    });
-
-    it("must fail to set presale start date if msg.sender isn't owner", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(user).setPresaleStartDate(testAddress))
-        .to.be.revertedWith("Ownable: caller is not the owner");
-    });
-
-    it("must fail to set presale start date if it's in the past", async function () {
-      const timestamp = await getBlockTimestamp();
-      const unixStartDate = timestamp - 1;
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate))
-        .to.be.revertedWith("Presale: start must be in future!");
-    });
-  });
-
-  context("for presale duration", () => {
-    it("should emit LogPresaleDurationSet event", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(testAddress)).to.emit(nomoPlayersDropMechanicContract, "LogPresaleDurationSet");
-    });
-
-    it("should set presale duration", async function () {
-      // Set presale duration to two hours
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
-      const presaleDurationSet = await nomoPlayersDropMechanicContract.connect(deployer).presaleDuration();
-      expect(TWO_HOURS).to.equal(presaleDurationSet)
-    });
-
-    it("must fail to set presale duration if msg.sender isn't owner", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(user).setPresaleDuration(testAddress))
-        .to.be.revertedWith("Ownable: caller is not the owner");
-    });
-
-    it("must fail to set presale duration if presale duration is zero", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(0))
-        .to.be.revertedWith("Presale: not a valid duration!");
-    });
-  });
-
   context("for initial tokens length", () => {
     it("should emit LogInitialTokensLengthSet event", async function () {
       await expect(nomoPlayersDropMechanicContract.connect(deployer).setInitialTokensLength(collectibleItems)).to.emit(nomoPlayersDropMechanicContract, "LogInitialTokensLengthSet");
@@ -345,39 +294,6 @@ describe("NomoPlayersDropMechanic tests", function () {
         .to.be.revertedWith("must be above 0!");
     });
   })
-
-  context("for whitelisted", () => {
-    it("should emit LogWhitelistedSet event", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([TEST_ADDRESSES[1]])).to.emit(nomoPlayersDropMechanicContract, "LogWhitelistedSet");
-    });
-
-    it("should set whitelisted addresses", async function () {
-      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", true);
-
-      let whitelistedAddresses = [];
-
-      for (let i = 0; i < TEST_ADDRESSES.length; i++) {
-        const whitelistedAddress = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(TEST_ADDRESSES[i]);
-        whitelistedAddresses.push(whitelistedAddress);
-      }
-
-      expect(whitelistedAddresses.includes(false)).to.equal(false)
-    });
-
-    it("must fail to set whitelisted if msg.sender isn't owner", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(user).setWhitelisted(TEST_ADDRESSES))
-        .to.be.revertedWith("Ownable: caller is not the owner");
-    });
-
-    it("must fail to set whitelisted if whitelisted array does not have any addresses", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted([])).to.be.revertedWith("Beneficiaries array length must be in the bounds of 1 and 100");
-    });
-
-    it("must fail to set whitelisted if whitelisted array is over 100", async function () {
-      const exceedingLimitNumberOfAddr = TEST_ADDRESSES.slice(0, 101);
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).setWhitelisted(exceedingLimitNumberOfAddr)).to.be.revertedWith("Beneficiaries array length must be in the bounds of 1 and 100");
-    });
-  });
 
   context("for privileged", () => {
     it("should emit LogPrivilegedSet event", async function () {
@@ -414,25 +330,17 @@ describe("NomoPlayersDropMechanic tests", function () {
 
   context("for random number", () => {
     it("should request random number", async function () {
-      await expect(nomoPlayersDropMechanicContract.connect(user).getRandomValue()).to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberRequested");
+      await expect(nomoPlayersDropMechanicContract.connect(user).getRandomValue())
+        .to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberRequested")
+        .withArgs(userAddress);
     });
 
     it("should save random number", async function () {
       await nomoPlayersDropMechanicContract.connect(user).getRandomValue();
       const requestId = await nomoPlayersDropMechanicContract.lastRequestId();
-      await expect(vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nomoPlayersDropMechanicAddress)).to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberSaved");
-    });
-
-    it("must fail to get random number if token sale hasn't started", async function () {
-      const timestamp = await getBlockTimestamp();
-      const unixStartDate = timestamp + FOUR_HOURS;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
-
-      const tokensToBeApproved = 1;
-      const value = BigNumber.from(tokensToBeApproved).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-
-      await expect(nomoPlayersDropMechanicContract.connect(user).getRandomValue()).to.be.revertedWith("Current timestamp isn't on sale");
+      await expect(vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nomoPlayersDropMechanicAddress))
+        .to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberSaved")
+        .withArgs(userAddress);
     });
   });
 
@@ -440,7 +348,13 @@ describe("NomoPlayersDropMechanic tests", function () {
     it("should execute airdrop", async function () {
       await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
-      await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
+
+      const txAirdrop: ContractTransaction = await nomoPlayersDropMechanicContract.executeAirdrop();
+      const airdropReceipt: ContractReceipt = await txAirdrop.wait();
+
+      const airdroppedTokens = getTokensFromEventArgs(airdropReceipt, "LogTokensAirdropped");
+
+      expect(airdroppedTokens.length).to.be.equal(TEST_ADDRESSES.length);
 
       for (let j = 0; j < TEST_ADDRESSES.length; j++) {
         const currAddress = TEST_ADDRESSES[j];
@@ -448,6 +362,8 @@ describe("NomoPlayersDropMechanic tests", function () {
         const addressErc721Balance = await erc721Mock.balanceOf(currAddress);
         expect(addressErc721Balance).to.equal(1);
       }
+
+      expect(await nomoPlayersDropMechanicContract.isAirdropExecuted()).to.equal(true);
     });
 
     it("must fail if random number is 0", async function () {
@@ -459,6 +375,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
       await nomoPlayersDropMechanicContract.executeAirdrop();
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
       await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Airdrop has been executed");
     });
 
@@ -475,101 +392,6 @@ describe("NomoPlayersDropMechanic tests", function () {
     it("must fail to execute airdrop if privileged users aren't set", async function () {
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
       await expect(nomoPlayersDropMechanicContract.executeAirdrop()).to.be.revertedWith("Invalid airdrop parameters");
-    });
-  });
-
-  context("for tokens purchasing on presale", () => {
-    beforeEach(async function () {
-      const timestamp = await getBlockTimestamp();
-      const unixStartDate = timestamp + ONE_MIN;
-
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
-
-      const OVERTIME = ONE_HOUR;
-      await network.provider.send("evm_increaseTime", [OVERTIME]); // Simulate presale has started
-    });
-
-    it("should buy tokens on presale from NomoPlayersDropMechanic contract", async function () {
-      const isWhitelistedBefore = await nomoPlayersDropMechanicContract.whitelisted(userAddress);
-      const userFundsBefore = await erc20Mock.balanceOf(userAddress);
-      const daoWalletFundsBefore = await erc20Mock.balanceOf(daoWalletAddress);
-      const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
-      const userTokensBefore = await erc721Mock.balanceOf(userAddress);
-      const tokenVaultQtyBefore = await erc721Mock.balanceOf(deployerAddress);
-
-      const tokensToBeBought = 1;
-      const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-
-      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
-      await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
-
-      const isWhitelistedAfter = await nomoPlayersDropMechanicContract.connect(deployer).whitelisted(userAddress);
-      const userTokensAfter = await erc721Mock.balanceOf(userAddress);
-      const tokenVaultQtyAfter = await erc721Mock.balanceOf(deployerAddress);
-      const userFundsAfter = await erc20Mock.balanceOf(userAddress);
-      const daoWalletFundsAfter = await erc20Mock.balanceOf(daoWalletAddress);
-      const strategyFundsAfter = await erc20Mock.balanceOf(strategyMock.address);
-      const nomoPlayersDropMechanicCollectibleLength = Number((await nomoPlayersDropMechanicContract.getTokensLeft()).toString());
-
-      expect(isWhitelistedBefore).to.equal(true);
-      expect(isWhitelistedAfter).to.equal(false);
-      expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
-      expect(userFundsAfter).to.equal(userFundsBefore.sub(value));
-      expect(strategyFundsBefore).to.equal(0);
-      expect(daoWalletFundsAfter).to.equal(daoWalletFundsBefore.add(value.div(5)));
-      expect(strategyFundsAfter).to.equal(value.div(5).mul(4));
-      expect(tokenVaultQtyBefore).to.equal(collectibleItems);
-      expect(tokenVaultQtyAfter).to.equal(collectibleItems - tokensToBeBought);
-      expect(userTokensBefore).to.equal(0);
-      expect(userTokensAfter).to.equal(tokensToBeBought);
-    });
-
-    it("must fail if presale hasn't started", async function () {
-      const timestamp = await getBlockTimestamp();
-      const unixStartDate = timestamp + FOUR_HOURS;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
-
-      const tokensToBeApproved = 1;
-      const value = BigNumber.from(tokensToBeApproved).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-
-      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale()).to.be.revertedWith("Current timestamp is not in the bounds of the presale period");
-    });
-
-    it("must fail if presale has ended", async function () {
-      await network.provider.send("evm_increaseTime", [FOUR_HOURS]);
-
-      const tokensToBeApproved = 1;
-      const value = BigNumber.from(tokensToBeApproved).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-
-      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
-      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale()).to.be.revertedWith("Current timestamp is not in the bounds of the presale period");
-    });
-
-    it("must fail if user is not whitelisted", async function () {
-      const tokensToBeApproved = 1;
-      const value = BigNumber.from(tokensToBeApproved).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-
-      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
-      // Here we use `deployer` as a signer, who is not whitelisted in the presale
-      await expect(nomoPlayersDropMechanicContract.connect(deployer).buyTokensOnPresale()).to.be.revertedWith("Claiming is forbidden");
-    });
-
-    it("must fail if user has already claimed", async function () {
-      // Approve 2 tokens 
-      const tokensToBeApproved = 2;
-      const value = BigNumber.from(tokensToBeApproved).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-
-      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
-      await nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale();
-
-      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
-      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnPresale()).to.be.revertedWith("Claiming is forbidden");
     });
   });
 
@@ -622,20 +444,13 @@ describe("NomoPlayersDropMechanic tests", function () {
       await expect(nomoPlayersDropMechanicContract.buyTokensOnSale(1)).to.be.revertedWith("Invalid random number");
     });
 
-    it("must fail to buy tokens on sale before the actual sale has started", async function () {
-      const timestamp = await getBlockTimestamp();
-      const unixStartDate = timestamp + ONE_MIN;
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleStartDate(unixStartDate);
+    it("must fail to buy tokens if airdrop executor tries to buy without requesting random number", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
 
-      await nomoPlayersDropMechanicContract.connect(deployer).setPresaleDuration(TWO_HOURS);
-
-      await network.provider.send("evm_increaseTime", [ONE_HOUR]); // Simulate presale hasn't finished
-
-      const tokensToBeBought = maxQuantity;
-      const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
-      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
-      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(7)).to.be.revertedWith("Sale period not started!");
+      expect(await nomoPlayersDropMechanicContract.isAirdropExecuted()).to.equal(true);
+      await expect(nomoPlayersDropMechanicContract.buyTokensOnSale(1)).to.be.revertedWith("Invalid random number");
     });
 
     it("must fail to deploy NomoPlayersDropMechanic contract if token price is zero", async () => {
