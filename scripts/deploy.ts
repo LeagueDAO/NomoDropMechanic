@@ -72,14 +72,6 @@ export async function deployNomoPlayersDropMechanic() {
   await addItemsToContract(whitelisted, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", false);
   console.log(`Whitelisted addresses have been set!`);
 
-  const setPresaleStartTx = await nomoPlayersDropMechanicContract.setPresaleStartDate(presaleStartDate);
-  await setPresaleStartTx.wait()
-  console.log(`Presale start date set on unix: ${presaleStartDate}`);
-
-  const setPresaleDurationTx = await nomoPlayersDropMechanicContract.setPresaleDuration(presaleDuration);
-  await setPresaleDurationTx.wait();
-  console.log(`Presale duration has been set to ${presaleDuration} seconds`);
-
   // Set tokens
   await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);
 
@@ -109,8 +101,6 @@ export async function deployNomoPlayersDropMechanic() {
     keyhash,
     fee,
     collectionLength,
-    presaleStartDate,
-    presaleDuration,
     mintedTokens: [...shuffled],
     whitelisted,
     privileged
