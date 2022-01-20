@@ -18,17 +18,37 @@ task("deploy-nomoPlayersDropMechanic", "Deploys a NomoPlayersDropMechanic contra
         const { deployNomoPlayersDropMechanic } = await lazyImport('./scripts/deploy');
         await deployNomoPlayersDropMechanic();
     });
+    
 task("verify-nomoPlayersDropMechanic", "Verify already deployed contract")
     .setAction(async () => {
         const { verifyNomoPlayersDropMechanic } = await lazyImport('./scripts/verify');
         await verifyNomoPlayersDropMechanic();
     })
 
-task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to privileged users")
+task("erc721-setApprovalForAll", "Request random value")
+    .setAction(async () => {
+        const { setApprovalForAll } = await lazyImport('./scripts/setApprovalForAll');
+        await setApprovalForAll();
+    })
+
+task("airdrop-requestRandomValue", "Request random value")
+    .setAction(async () => {
+        const { requestRandomValue } = await lazyImport('./scripts/requestRandomValue');
+        await requestRandomValue();
+    })
+
+task("airdrop-execute", "Airdrop ERC721 to eligible users")
     .setAction(async () => {
         const { executeAirdrop } = await lazyImport('./scripts/airdrop');
         await executeAirdrop();
     })
+
+task("deploy-verify-erc721", "Airdrop ERC721 to eligible users")
+    .setAction(async () => {
+        const { deployVerifyERC721 } = await lazyImport('./scripts/deployMockERC721');
+        await deployVerifyERC721();
+    })
+
 // Some of the settings should be defined in `./config.js`.
 const cfg: HardhatUserConfig = {
     solidity: {
