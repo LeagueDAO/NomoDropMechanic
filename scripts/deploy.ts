@@ -26,13 +26,10 @@ export async function deployNomoPlayersDropMechanic() {
   const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
   const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
   const tokensVault = coerceUndefined(process.env.TOKENS_VAULT);
-  const presaleStartDate = coerceUndefined(process.env.PRESALE_START_DATE);
-  const presaleDuration = coerceUndefined(process.env.PRESALE_DURATION);
   const vrfCoordinator = coerceUndefined(process.env.VRF_COORDINATOR);
   const linkToken = coerceUndefined(process.env.LINK_TOKEN);
   const keyhash = coerceUndefined(process.env.KEYHASH);
   const fee = coerceUndefined(process.env.FEE);
-  const whitelisted = config.WHITE_LISTED;
   const privileged = config.PRIVILEGED;
 
   const mintedTokens = config.generateCollection(collectionLength);
