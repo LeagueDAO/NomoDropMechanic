@@ -18,7 +18,7 @@ task("deploy-nomoPlayersDropMechanic", "Deploys a NomoPlayersDropMechanic contra
         const { deployNomoPlayersDropMechanic } = await lazyImport('./scripts/deploy');
         await deployNomoPlayersDropMechanic();
     });
-    
+
 task("verify-nomoPlayersDropMechanic", "Verify already deployed contract")
     .setAction(async () => {
         const { verifyNomoPlayersDropMechanic } = await lazyImport('./scripts/verify');
@@ -37,7 +37,7 @@ task("airdrop-requestRandomValue", "Request random value")
         await requestRandomValue();
     })
 
-task("airdrop-execute", "Airdrop ERC721 to eligible users")
+task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to eligible users")
     .setAction(async () => {
         const { executeAirdrop } = await lazyImport('./scripts/airdrop');
         await executeAirdrop();

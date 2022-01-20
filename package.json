@@ -7,8 +7,8 @@
     "coverage": "env-cmd --silent -f .env.dev npx hardhat coverage",
     "test": "env-cmd --silent -f .env.dev npx hardhat test",
     "contracts:compile": "env-cmd --silent -f env.dev npx hardhat compile",
-    "contracts:migrate:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoDropMechanic --network rinkeby",
-    "contracts:verify:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat verify-nomoDropMechanic --network rinkeby",
+    "contracts:migrate:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat deploy-nomoPlayersDropMechanic --network rinkeby",
+    "contracts:verify:dev:rinkeby": "env-cmd --silent -f .env.dev npx hardhat verify-nomoPlayersDropMechanic --network rinkeby",
     "contracts:erc721Mock:rinkeby": "env-cmd --silent -f .env.dev npx hardhat deploy-verify-erc721 --network rinkeby",
     "contracts:setApproval:rinkeby": "env-cmd --silent -f .env.dev npx hardhat erc721-setApprovalForAll --network rinkeby",
     "contracts:random:rinkeby": "env-cmd --silent -f .env.dev npx hardhat airdrop-requestRandomValue --network rinkeby",
@@ -19,11 +19,11 @@
     "contracts:setApproval:mumbai": "env-cmd --silent -f .env.dev npx hardhat erc721-setApprovalForAll --network mumbai",
     "contracts:random:mumbai": "env-cmd --silent -f .env.dev npx hardhat airdrop-requestRandomValue --network mumbai",
     "contracts:airdrop:mumbai": "env-cmd --silent -f .env.dev npx hardhat airdrop-execute --network mumbai",
-    "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nomoDropMechanic --network mainnet",
-    "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nomoDropMechanic --network mainnet",
+    "contracts:migrate:prod": "env-cmd --silent -f .env.prod npx hardhat deploy-nomoPlayersDropMechanic --network mainnet",
+    "contracts:verify:prod": "env-cmd --silent -f .env.prod npx hardhat verify-nomoPlayersDropMechanic --network mainnet",
     "contracts:setApproval:prod": "env-cmd --silent -f .env.prod npx hardhat erc721-setApprovalForAll --network mainnet",
     "contracts:random:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-requestRandomValue --network mainnet",
-    "contracts:airdrop:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-nomoDropMechanic --network mainnet"
+    "contracts:airdrop:prod": "env-cmd --silent -f .env.prod npx hardhat airdrop-execute --network mainnet"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
