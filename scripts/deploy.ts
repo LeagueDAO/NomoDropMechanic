@@ -68,10 +68,6 @@ export async function deployNomoPlayersDropMechanic() {
   await setStrategyTx.wait();
   console.log(`Strategy contract has been set at address ${strategyContractAddress}`);
 
-  // Set whitelisted addresses
-  await addItemsToContract(whitelisted, nomoPlayersDropMechanicContract.functions["setWhitelisted"], "addresses", false);
-  console.log(`Whitelisted addresses have been set!`);
-
   // Set tokens
   await addItemsToContract(shuffled, nomoPlayersDropMechanicContract.functions["addTokensToCollection"], "tokens", false);
 
@@ -102,7 +98,6 @@ export async function deployNomoPlayersDropMechanic() {
     fee,
     collectionLength,
     mintedTokens: [...shuffled],
-    whitelisted,
     privileged
   }, null, 2));
 
