@@ -2,10 +2,9 @@ const { expect } = require("chai");
 import hre, { ethers, network } from "hardhat";
 import fs from 'fs';
 import { BigNumber, Signer, ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
-import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock, LinkToken } from '../typechain';
-import { tokenPrice, collectibleItems, maxQuantity, testRandomNumber, testAddress, zeroAddress, TWO_MINS_IN_MILLIS, ONE_MIN, ONE_HOUR, TWO_HOURS, FOUR_HOURS, TEST_ADDRESSES } from './helpers/constants';
-import { getTokensFromEventArgs, getBlockTimestamp, shuffle, addItemsToContract, simulateVRFCallback } from './helpers/helpers';
-import { PRIVILEGED } from "../scripts/deployConfig/privilegedAddresses";
+import { ERC721Mock, NomoPlayersDropMechanic, StrategyMock, ERC20Mock } from '../typechain';
+import { tokenPrice, collectibleItems, maxQuantity, testRandomNumber, testAddress, zeroAddress, TWO_MINS_IN_MILLIS, TEST_ADDRESSES } from './helpers/constants';
+import { getTokensFromEventArgs, shuffle, addItemsToContract, simulateVRFCallback } from './helpers/helpers';
 
 let deployer: Signer, deployerAddress: string;
 let user: Signer, userAddress: string;
@@ -169,12 +168,17 @@ describe("NomoPlayersDropMechanic tests", function () {
       // Approve nomoPlayersDropMechanicContract to spend user's tokens
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
 
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
+
+      const tokensAfterAirdrop = collectibleItems - TEST_ADDRESSES.length;
       let tokensPerTxBuy = maxQuantity;
-      const leftoversToBuy = collectibleItems % tokensPerTxBuy;
-      const loopsBuy = (collectibleItems - (collectibleItems % tokensPerTxBuy)) / tokensPerTxBuy + 1;
+      const leftoversToBuy = tokensAfterAirdrop % tokensPerTxBuy;
+      const loopsBuy = (tokensAfterAirdrop - (tokensAfterAirdrop % tokensPerTxBuy)) / tokensPerTxBuy + 1;
       let txCounterBuy = 0;
 
-      for (let i = 0; i < collectibleItems; i += tokensPerTxBuy) {
+      for (let i = 0; i < tokensAfterAirdrop; i += tokensPerTxBuy) {
         txCounterBuy++;
         if (txCounterBuy == loopsBuy) { tokensPerTxBuy = leftoversToBuy; }
         await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
@@ -400,6 +404,11 @@ describe("NomoPlayersDropMechanic tests", function () {
       const tokensToBeBought = 1;
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.executeAirdrop();
+
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought)).to.emit(nomoPlayersDropMechanicContract, "LogTokensBought");
     });
@@ -415,6 +424,11 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       let tokensToBeBought = maxQuantity;
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
+
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.executeAirdrop();
+
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
       await nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought);
@@ -429,19 +443,29 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       expect(nomoBalanceBefore).to.equal(0);
       expect(nomoBalanceBefore).to.equal(nomoBalanceAfter);
-      expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought);
+      expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - tokensToBeBought - TEST_ADDRESSES.length);
       expect(userFundsAfter).to.equal(userFundsBefore.sub(value));
       expect(strategyFundsBefore).to.equal(0);
       expect(daoWalletFundsAfter).to.equal(daoWalletFundsBefore.add(value.div(5)));
       expect(strategyFundsAfter).to.equal(value.div(5).mul(4));
       expect(tokenVaultQtyBefore).to.equal(collectibleItems);
-      expect(tokenVaultQtyAfter).to.equal(collectibleItems - tokensToBeBought);
+      expect(tokenVaultQtyAfter).to.equal(collectibleItems - tokensToBeBought - TEST_ADDRESSES.length);
       expect(userTokensBefore).to.equal(0);
       expect(userTokensAfter).to.equal(tokensToBeBought);
     });
 
     it("must fail if random number is 0", async function () {
       await expect(nomoPlayersDropMechanicContract.buyTokensOnSale(1)).to.be.revertedWith("Invalid random number");
+    });
+
+    it("must fail if airdrop hasn't been executed", async function () {
+      const tokensToBeBought = maxQuantity + 1;
+      const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
+
+      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
+      await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought))
+        .to.be.revertedWith("Airdrop has not been executed!");
     });
 
     it("must fail to buy tokens if airdrop executor tries to buy without requesting random number", async function () {
@@ -502,6 +526,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail if requested quantity is lower or equal to zero", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
+
       const tokensToBeBought = 0;
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought))
@@ -565,7 +593,13 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       await hre.run("fund-link", { contract: nomoPlayersDropMechanicTestAddress, linkaddress: linkTokenAddress });
 
-      for (let i = 0; i < collectibleItems; i += tokensPerTxBuy) {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicTestContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicTestContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicTestContract.executeAirdrop();
+
+      const tokensAfterAirdrop = collectibleItems - TEST_ADDRESSES.length;
+
+      for (let i = 0; i < tokensAfterAirdrop; i += tokensPerTxBuy) {
         txCounterBuy++;
         if (txCounterBuy == loopsBuy) { tokensPerTxBuy = leftoversToBuy; }
         await simulateVRFCallback(nomoPlayersDropMechanicTestContract, vrfCoordinator, user);
@@ -583,6 +617,10 @@ describe("NomoPlayersDropMechanic tests", function () {
     }).timeout(TWO_MINS_IN_MILLIS);
 
     it("must fail if requested quantity exceeds the limit", async function () {
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
+
       const tokensToBeBought = maxQuantity + 1;
       const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
@@ -592,10 +630,16 @@ describe("NomoPlayersDropMechanic tests", function () {
     });
 
     it("must fail if NomoPlayersDropMechanic contract is not approved", async function () {
-      await erc721Mock.setApprovalForAll(nomoPlayersDropMechanicAddress, false, { from: deployerAddress });
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.executeAirdrop();
+
       const tokensToBeBought = 3;
-      const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
-      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+      const value = BigNumber.from(tokensToBeBought + TEST_ADDRESSES.length).mul(tokenPrice);
+      await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);;
+
+      await erc721Mock.setApprovalForAll(nomoPlayersDropMechanicAddress, false, { from: deployerAddress });
+
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought))
         .to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
@@ -613,13 +657,17 @@ describe("NomoPlayersDropMechanic tests", function () {
       const strategyFundsBefore = await erc20Mock.balanceOf(strategyMock.address);
       const userTokensBefore = await erc721Mock.balanceOf(userAddress);
 
-      const value = BigNumber.from(tokensToBeBought).mul(tokenPrice);
+      const value = BigNumber.from(tokensToBeBought + TEST_ADDRESSES.length).mul(tokenPrice);
 
       // Set approval for all tokens nomoPlayersDropMechanicTestContract to distribute the items owned by ERC721Mock deployer
       await erc721Mock.setApprovalForAll(nomoPlayersDropMechanicAddress, true, { from: deployerAddress });
 
       // Approve nomoPlayersDropMechanicTestContract to spend user's tokens
       await erc20Mock.connect(user).approve(nomoPlayersDropMechanicAddress, value);
+
+      await addItemsToContract(TEST_ADDRESSES, nomoPlayersDropMechanicContract.functions["setPrivileged"], "addresses", true);
+      await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, deployer);
+      await nomoPlayersDropMechanicContract.connect(deployer).executeAirdrop();
 
       await simulateVRFCallback(nomoPlayersDropMechanicContract, vrfCoordinator, user);
       await expect(nomoPlayersDropMechanicContract.connect(user).buyTokensOnSale(tokensToBeBought))
@@ -634,8 +682,8 @@ describe("NomoPlayersDropMechanic tests", function () {
 
       // The state of the balances must not have changed after, because of the reverted transacted
       expect(tokenVaultQtyBefore).to.equal(collectibleItems);
-      expect(tokenVaultQtyAfter).to.equal(tokenVaultQtyBefore);
-      expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems);
+      expect(tokenVaultQtyAfter).to.equal(+tokenVaultQtyBefore - TEST_ADDRESSES.length);
+      expect(nomoPlayersDropMechanicCollectibleLength).to.equal(collectibleItems - TEST_ADDRESSES.length);
       expect(userFundsAfter).to.equal(userFundsBefore);
       expect(strategyFundsBefore).to.equal(0);
       expect(strategyFundsAfter).to.equal(strategyFundsBefore);
