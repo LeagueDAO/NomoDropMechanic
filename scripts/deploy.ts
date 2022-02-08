@@ -13,10 +13,14 @@ dotenv.config();
 
 export async function deployNomoPlayersDropMechanic() {
   await hre.run('compile');
-  const [deployer] = await hre.ethers.getSigners();
+  const [deployer, tokensVault] = await hre.ethers.getSigners();
+  const tokensVaultAddress = tokensVault.address
+
 
   console.log('Deploying contracts with the account:', deployer.address);
-  console.log(`Account balance:  ${(await deployer.getBalance()).toString()} \n`);
+  console.log('Tokens vault account:', tokensVault.address);
+  console.log(`Deployer balance:  ${(await deployer.getBalance()).toString()}`);
+  console.log(`TokensVault balance:  ${(await tokensVault.getBalance()).toString()} \n`);
 
   const erc20Address = coerceUndefined(process.env.DAI_ADDRESS);
   const price = coerceUndefined(process.env.TOKEN_PRICE);
@@ -25,7 +29,6 @@ export async function deployNomoPlayersDropMechanic() {
   const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
   const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
   const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
-  const tokensVault = coerceUndefined(process.env.TOKENS_VAULT);
   const vrfCoordinator = coerceUndefined(process.env.VRF_COORDINATOR);
   const linkToken = coerceUndefined(process.env.LINK_TOKEN);
   const keyhash = coerceUndefined(process.env.KEYHASH);
@@ -36,10 +39,19 @@ export async function deployNomoPlayersDropMechanic() {
   //! shuffled so we do not know the actual order inside
   const shuffled = shuffle(mintedTokens)
 
+  console.log('erc721Address: ', erc721Address);
+  console.log('tokensVault: ', tokensVaultAddress);
+  console.log('price: ', price);
+  console.log('maxQuantity: ', maxQuantity);
+  console.log('vrfCoordinator: ', vrfCoordinator);
+  console.log('linkToken: ', linkToken);
+  console.log('keyhash: ', keyhash);
+  console.log('fee: ', fee);
+  
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
   const nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
     erc721Address,
-    tokensVault,
+    tokensVaultAddress,
     price,
     maxQuantity,
     vrfCoordinator,
@@ -77,14 +89,14 @@ export async function deployNomoPlayersDropMechanic() {
   console.log(`Privileged addresses have been set!`);
 
   //! After deploy of the NomoPlayersDropMechanic contract, give approval for all tokens in the ERC721 contract to NomoPlayersDropMechanic contract
-  // await ERC721.setApprovalForAll(nomoPlayersDropMechanicContractAddress, true, { from: tokensVault });
+  // await ERC721.connect(tokensVault)setApprovalForAll(nomoPlayersDropMechanicContractAddress, true);
 
   fs.writeFileSync('./contracts.json', JSON.stringify({
     network: hre.network.name,
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
     erc721Address,
     erc20Address,
-    tokensVault,
+    tokensVault: tokensVaultAddress,
     strategyContractAddress,
     daoWalletAddress,
     price,

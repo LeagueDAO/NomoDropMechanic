@@ -179,6 +179,10 @@ contract NomoPlayersDropMechanic is
         emit LogRandomNumberRequested(msg.sender);
     }
 
+    function canBuy(address _address) external view returns (bool) {
+        return addressToRandomNumber[_address] > 0;
+    }
+
     /**
      *  @notice This is a callback method which is getting called in RandomConsumerNumber.sol
      */
@@ -247,6 +251,7 @@ contract NomoPlayersDropMechanic is
      */
     function buyTokensOnSale(uint256 quantity) public nonReentrant {
         isValidRandomNumber();
+        require(isAirdropExecuted, "Airdrop has not been executed!");
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"

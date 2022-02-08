@@ -15,7 +15,7 @@ export const networks: NetworksUserConfig = {
     mumbai: {
         url: "https://rpc-mumbai.maticvigil.com",
         chainId: 80001,
-        accounts: [`0x${process.env.PRIVATE_KEY}`],
+        accounts: [`0x${process.env.PRIVATE_KEY}`,`0x${process.env.TOKENS_VAULT}` ],
         gas: 'auto',
         gasPrice: 'auto',
         gasMultiplier: 1.5,

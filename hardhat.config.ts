@@ -37,7 +37,7 @@ task("airdrop-requestRandomValue", "Request random value")
         await requestRandomValue();
     })
 
-task("airdrop-nomoPlayersDropMechanic", "Airdrop ERC721 to eligible users")
+task("airdrop-execute", "Airdrop ERC721 to eligible users")
     .setAction(async () => {
         const { executeAirdrop } = await lazyImport('./scripts/airdrop');
         await executeAirdrop();
