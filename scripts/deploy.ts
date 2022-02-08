@@ -16,14 +16,15 @@ export async function deployNomoPlayersDropMechanic() {
   const [deployer, tokensVault] = await hre.ethers.getSigners();
   const tokensVaultAddress = tokensVault.address
 
-
   console.log('Deploying contracts with the account:', deployer.address);
   console.log('Tokens vault account:', tokensVault.address);
   console.log(`Deployer balance:  ${(await deployer.getBalance()).toString()}`);
   console.log(`TokensVault balance:  ${(await tokensVault.getBalance()).toString()} \n`);
 
+  const rawPrice = coerceUndefined(process.env.TOKEN_PRICE);
+
   const erc20Address = coerceUndefined(process.env.DAI_ADDRESS);
-  const price = coerceUndefined(process.env.TOKEN_PRICE);
+  const price = ethers.utils.parseEther(rawPrice);
   const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH)
   const maxQuantity = coerceUndefined(process.env.MAX_QUANTITY);
   const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
@@ -41,7 +42,7 @@ export async function deployNomoPlayersDropMechanic() {
 
   console.log('erc721Address: ', erc721Address);
   console.log('tokensVault: ', tokensVaultAddress);
-  console.log('price: ', price);
+  console.log('price: ', price.toString());
   console.log('maxQuantity: ', maxQuantity);
   console.log('vrfCoordinator: ', vrfCoordinator);
   console.log('linkToken: ', linkToken);
@@ -99,7 +100,7 @@ export async function deployNomoPlayersDropMechanic() {
     tokensVault: tokensVaultAddress,
     strategyContractAddress,
     daoWalletAddress,
-    price,
+    price: price.toString(),
     maxQuantity,
     vrfCoordinator,
     linkToken,
