@@ -48,15 +48,17 @@ contract NomoPlayersDropMechanic is
     event LogRandomNumberRequested(address from);
     event LogRandomNumberSaved(address from);
 
-    function isValidAddress(address addr) private view {
+    modifier isValidAddress(address addr) {
         require(addr != address(0), "Not a valid address!");
+        _;
     }
 
-    function isValidRandomNumber() private view {
+    modifier isValidRandomNumber() {
         require(
             addressToRandomNumber[msg.sender] != 0,
             "Invalid random number"
         );
+        _;
     }
 
     /**
@@ -75,9 +77,11 @@ contract NomoPlayersDropMechanic is
         address _LINKToken,
         bytes32 _keyHash,
         uint256 _fee
-    ) RandomNumberConsumer(_vrfCoordinator, _LINKToken, _keyHash, _fee) {
-        isValidAddress(_erc721Address);
-        isValidAddress(_tokensVault);
+    )
+        RandomNumberConsumer(_vrfCoordinator, _LINKToken, _keyHash, _fee)
+        isValidAddress(_erc721Address)
+        isValidAddress(_tokensVault)
+    {
         require(_tokenPrice > 0, "Token price must be higher than zero");
         require(_maxQuantity > 0, "Maximum quantity must be higher than zero");
         erc721Address = _erc721Address;
@@ -111,8 +115,11 @@ contract NomoPlayersDropMechanic is
      * @notice Sets ERC20 address.
      * @param _erc20Address address of the associated ERC20 contract instance
      */
-    function setERC20Address(address _erc20Address) public onlyOwner {
-        isValidAddress(_erc20Address);
+    function setERC20Address(address _erc20Address)
+        public
+        onlyOwner
+        isValidAddress(_erc20Address)
+    {
         erc20Address = _erc20Address;
         emit LogERC20AddressSet(erc20Address);
     }
@@ -124,8 +131,8 @@ contract NomoPlayersDropMechanic is
     function setStrategyContractAddress(address _strategyContractAddress)
         public
         onlyOwner
+        isValidAddress(_strategyContractAddress)
     {
-        isValidAddress(_strategyContractAddress);
         strategyContractAddress = _strategyContractAddress;
         emit LogStrategyContractAddressSet(strategyContractAddress);
     }
@@ -134,8 +141,11 @@ contract NomoPlayersDropMechanic is
      * @notice Sets DAO wallet address.
      * @param _daoWalletAddress address of the DAO wallet
      */
-    function setDaoWalletAddress(address _daoWalletAddress) public onlyOwner {
-        isValidAddress(_daoWalletAddress);
+    function setDaoWalletAddress(address _daoWalletAddress)
+        public
+        onlyOwner
+        isValidAddress(_daoWalletAddress)
+    {
         daoWalletAddress = _daoWalletAddress;
         emit LogDaoWalletAddressSet(daoWalletAddress);
     }
@@ -179,6 +189,10 @@ contract NomoPlayersDropMechanic is
         emit LogRandomNumberRequested(msg.sender);
     }
 
+    function canBuy(address _address) external view returns (bool) {
+        return addressToRandomNumber[_address] > 0;
+    }
+
     /**
      *  @notice This is a callback method which is getting called in RandomConsumerNumber.sol
      */
@@ -197,8 +211,7 @@ contract NomoPlayersDropMechanic is
      * Requirements:
      * - the caller must be owner.
      */
-    function executeAirdrop() public onlyOwner {
-        isValidRandomNumber();
+    function executeAirdrop() public onlyOwner isValidRandomNumber {
         require(!isAirdropExecuted, "Airdrop has been executed");
         require(
             (tokens.length >= privileged.length) && (privileged.length > 0),
@@ -245,8 +258,12 @@ contract NomoPlayersDropMechanic is
      * Requirements:
      * - the caller must have sufficient ERC20 tokens.
      */
-    function buyTokensOnSale(uint256 quantity) public nonReentrant {
-        isValidRandomNumber();
+    function buyTokensOnSale(uint256 quantity)
+        public
+        nonReentrant
+        isValidRandomNumber
+    {
+        require(isAirdropExecuted, "Airdrop has not been executed!");
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"

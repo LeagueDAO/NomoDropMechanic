@@ -8,7 +8,8 @@ const { coerceUndefined } = config;
 dotenv.config();
 
 export async function setApprovalForAll() {
-    const [deployer] = await hre.ethers.getSigners();
+    // todo change to actual token owner. Might not be the deployer
+    const [deployer, tokensVault] = await hre.ethers.getSigners();
 
     console.log('Setting approval with the account:', deployer.address);
     console.log(`Account balance:  ${(await deployer.getBalance()).toString()} \n`);
@@ -25,7 +26,7 @@ export async function setApprovalForAll() {
     console.log('Approving contract...');
 
     try {
-        const approvalTx = await erc721.setApprovalForAll(contracts.nomoPlayersDropMechanic, true);
+        const approvalTx = await erc721.connect(tokensVault).setApprovalForAll(contracts.nomoPlayersDropMechanic, true);
         await approvalTx.wait();
     } catch (error) {
         console.log(error);
