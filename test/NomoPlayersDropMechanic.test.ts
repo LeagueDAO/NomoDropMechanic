@@ -346,6 +346,14 @@ describe("NomoPlayersDropMechanic tests", function () {
         .to.emit(nomoPlayersDropMechanicContract, "LogRandomNumberSaved")
         .withArgs(userAddress);
     });
+
+    it("should fail to request random number if random number is already saved", async function () {
+      await nomoPlayersDropMechanicContract.connect(user).getRandomValue();
+      const requestId = await nomoPlayersDropMechanicContract.lastRequestId();
+      await vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nomoPlayersDropMechanicAddress);
+
+      await expect(nomoPlayersDropMechanicContract.connect(user).getRandomValue()).to.be.revertedWith("Random number already received");
+    });
   });
 
   context("for airdrop", () => {
