@@ -184,11 +184,20 @@ contract NomoPlayersDropMechanic is
      * @notice Requests random number from Chainlink VRF.
      */
     function getRandomValue() public {
+        require(
+            addressToRandomNumber[msg.sender] == 0,
+            "Random number request forbidden"
+        );
+
         lastRequestId = getRandomNumber();
 
         emit LogRandomNumberRequested(msg.sender);
     }
 
+    /**
+     * @notice Check if random number from Chainlink VRF is received for `address`.
+     * @param _address address for which RN is checked.
+     */
     function canBuy(address _address) external view returns (bool) {
         return addressToRandomNumber[_address] > 0;
     }
