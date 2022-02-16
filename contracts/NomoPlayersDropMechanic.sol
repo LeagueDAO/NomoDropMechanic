@@ -186,7 +186,7 @@ contract NomoPlayersDropMechanic is
     function getRandomValue() public {
         require(
             addressToRandomNumber[msg.sender] == 0,
-            "Random number request forbidden"
+            "Random number already received"
         );
 
         lastRequestId = getRandomNumber();

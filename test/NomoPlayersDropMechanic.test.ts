@@ -352,7 +352,7 @@ describe("NomoPlayersDropMechanic tests", function () {
       const requestId = await nomoPlayersDropMechanicContract.lastRequestId();
       await vrfCoordinator.callBackWithRandomness(requestId, testRandomNumber, nomoPlayersDropMechanicAddress);
 
-      await expect(nomoPlayersDropMechanicContract.connect(user).getRandomValue()).to.be.revertedWith("Random number request forbidden");
+      await expect(nomoPlayersDropMechanicContract.connect(user).getRandomValue()).to.be.revertedWith("Random number already received");
     });
   });
 
