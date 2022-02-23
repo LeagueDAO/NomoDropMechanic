@@ -28,6 +28,7 @@ contract NomoPlayersDropMechanic is
     uint256 public initialTokensLength;
     uint256 public tokenPrice;
     uint256 public maxQuantity;
+    uint256 public saleStart;
     address public tokensVault;
     address public daoWalletAddress;
     address public strategyContractAddress;
@@ -40,6 +41,7 @@ contract NomoPlayersDropMechanic is
     event LogTokensBought(uint256[] _transferredTokens);
     event LogTokensAirdropped(uint256[] _airdroppedTokens);
     event LogERC20AddressSet(address _erc20Address);
+    event LogSaleStartSet(uint256 _saleStart);
     event LogStrategyContractAddressSet(address _strategyContractAddress);
     event LogDaoWalletAddressSet(address _daoWalletAddress);
     event LogInitialTokensLengthSet(uint256 _initialTokensLength);
@@ -47,6 +49,7 @@ contract NomoPlayersDropMechanic is
     event LogTokensAdded(uint256 length);
     event LogRandomNumberRequested(address from);
     event LogRandomNumberSaved(address from);
+    event LogWithdrawLinkTokensLeft(address triggeredBy, uint256 amount);
 
     modifier isValidAddress(address addr) {
         require(addr != address(0), "Not a valid address!");
@@ -122,6 +125,17 @@ contract NomoPlayersDropMechanic is
     {
         erc20Address = _erc20Address;
         emit LogERC20AddressSet(erc20Address);
+    }
+
+    /**
+     * @notice Sets sale start timestamp.
+     * @param _saleStart represents the sale start timestamp
+     */
+    function setSaleStart(uint256 _saleStart) public onlyOwner {
+        require(_saleStart > block.timestamp, "Invalid sale start");
+        saleStart = _saleStart;
+
+        emit LogSaleStartSet(saleStart);
     }
 
     /**
@@ -270,6 +284,7 @@ contract NomoPlayersDropMechanic is
         isValidRandomNumber
     {
         require(isAirdropExecuted, "Airdrop has not been executed!");
+        require(block.timestamp > saleStart, "Not in sale period");
         require(
             (quantity > 0) && (quantity <= maxQuantity),
             "Invalid quantity"
@@ -331,5 +346,35 @@ contract NomoPlayersDropMechanic is
      */
     function getTokensLeft() public view returns (uint256) {
         return tokens.length;
+    }
+
+    /**
+     * @dev Pull `LINK` tokens left after the NFTs are sold out.
+     *
+     * * Requirements:
+     *
+     * - must be called from `owner` only.
+     *
+     * Emits {LogWithdrawLinkTokensLeft} event.
+     */
+    function withdrawLinkTokensLeft()
+        external
+        onlyOwner
+        nonReentrant
+        returns (uint256)
+    {
+        uint256 linkBalance = IERC20(address(LINK)).balanceOf(address(this));
+
+        require(
+            getTokensLeft() == 0 && linkBalance > 0,
+            "Pulling LINKs out forbidden"
+        );
+
+        require(
+            IERC20(address(LINK)).transfer(msg.sender, linkBalance),
+            "Failed to pull LINKs"
+        );
+
+        emit LogWithdrawLinkTokensLeft(msg.sender, linkBalance);
     }
 }

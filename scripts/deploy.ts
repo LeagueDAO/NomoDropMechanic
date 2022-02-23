@@ -28,6 +28,7 @@ export async function deployNomoPlayersDropMechanic() {
   const collectionLength = coerceUndefined(process.env.COLLECTION_LENGTH)
   const maxQuantity = coerceUndefined(process.env.MAX_QUANTITY);
   const erc721Address = coerceUndefined(process.env.ERC721_ADDRESS);
+  const saleStart = coerceUndefined(process.env.SALE_START);
   const daoWalletAddress = coerceUndefined(process.env.DAO_WALLET_ADDRESS);
   const strategyContractAddress = coerceUndefined(process.env.STRATEGY_CONTRACT_ADDRESS);
   const vrfCoordinator = coerceUndefined(process.env.VRF_COORDINATOR);
@@ -48,7 +49,7 @@ export async function deployNomoPlayersDropMechanic() {
   console.log('linkToken: ', linkToken);
   console.log('keyhash: ', keyhash);
   console.log('fee: ', fee);
-  
+
   const NomoPlayersDropMechanic_Factory: ContractFactory = await hre.ethers.getContractFactory("NomoPlayersDropMechanic");
   const nomoPlayersDropMechanicContract = await NomoPlayersDropMechanic_Factory.deploy(
     erc721Address,
@@ -69,6 +70,10 @@ export async function deployNomoPlayersDropMechanic() {
   const setErc20tx = await nomoPlayersDropMechanicContract.setERC20Address(erc20Address, { gasLimit: GAS_LIMIT });
   await setErc20tx.wait();
   console.log(`ERC20 contract has been set at address ${erc20Address}`);
+
+  const setSaleStartTx = await nomoPlayersDropMechanicContract.setSaleStart(saleStart, { gasLimit: GAS_LIMIT });
+  await setSaleStartTx.wait();
+  console.log(`Sale start has been set at ${saleStart}`);
 
   const setDAOTx = await nomoPlayersDropMechanicContract.setDaoWalletAddress(daoWalletAddress, { gasLimit: GAS_LIMIT });
   await setDAOTx.wait()
@@ -97,6 +102,7 @@ export async function deployNomoPlayersDropMechanic() {
     nomoPlayersDropMechanic: nomoPlayersDropMechanicContract.address,
     erc721Address,
     erc20Address,
+    saleStart,
     tokensVault: tokensVaultAddress,
     strategyContractAddress,
     daoWalletAddress,
